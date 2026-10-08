@@ -1,0 +1,45 @@
+title: Potential DNS Tunneling or Exfiltration via TXT Queries
+id: 5f1b8a3e-7c9d-4318-8e2b-4a9c1e7f5011
+status: stable
+description: Detects suspicious DNS activity characterized by high-volume TXT record queries, long domain labels, or hex/base64 encoded subdomains indicative of DNS tunneling protocols (e.g. Iodine, DNSCat2, Cobalt Strike DNS beacons).
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+  - https://attack.mitre.org/techniques/T1048/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.command_and_control
+  - attack.exfiltration
+  - attack.t1071.004
+  - attack.t1048
+logsource:
+  category: dns
+  product: zeek
+detection:
+  selection_txt:
+    qtype_name: 'TXT'
+  selection_subdomain_length:
+    query|contains:
+      - '.tunnel.'
+      - '.c2.'
+      - '.dnsc2.'
+      - '.ns1.'
+      - '.cdn-update.'
+  filter_legitimate_spf_dkim:
+    query|contains:
+      - '_domainkey.'
+      - '_spf.'
+      - 'google._domainkey.'
+      - 'github.com'
+  condition: selection_txt and selection_subdomain_length and not filter_legitimate_spf_dkim
+falsepositives:
+  - Cloud provider verification records, SPF checks, DKIM email authentication validations.
+  - Antivirus signature cloud lookups using DNS TXT records (e.g. Sophos, Trend Micro).
+level: high
+fields:
+  - id.orig_h
+  - id.resp_h
+  - query
+  - qtype_name
+  - answers
+rational: High severity because DNS tunneling allows adversaries to bypass proxy controls and firewalls that permit port 53 egress uninspected.

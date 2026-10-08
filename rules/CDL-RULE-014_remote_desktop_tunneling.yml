@@ -1,0 +1,41 @@
+title: Remote Desktop Port Tunneling via Netsh Portproxy
+id: 9d1b4f7e-2a8c-4519-8e3b-6f0a9c2d7014
+status: stable
+description: Detects the creation of network port forwarding rules using netsh interface portproxy to redirect local or external ports to RDP (3389) or internal services, facilitating covert lateral tunneling.
+references:
+  - https://attack.mitre.org/techniques/T1021/001/
+  - https://attack.mitre.org/techniques/T1572/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.lateral_movement
+  - attack.command_and_control
+  - attack.t1021.001
+  - attack.t1572
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_netsh:
+    Image|endswith: '\netsh.exe'
+  selection_portproxy:
+    CommandLine|contains:
+      - 'portproxy'
+      - 'interface portproxy add'
+  selection_rdp_or_ports:
+    CommandLine|contains:
+      - 'listenport='
+      - 'connectport=3389'
+      - 'connectport=445'
+      - 'connectport=8080'
+  condition: selection_netsh and selection_portproxy and selection_rdp_or_ports
+falsepositives:
+  - Specialized network administration tools or Windows Subsystem for Linux (WSL) port mapping configurations.
+level: high
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: High severity because netsh portproxy enables attackers to bypass network segmentation and route unauthorized RDP traffic across firewalled subnets.

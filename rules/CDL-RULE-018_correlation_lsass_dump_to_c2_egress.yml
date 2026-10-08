@@ -1,0 +1,54 @@
+title: LSASS Process Access Followed by Anomalous Network Egress (Dump to Exfil)
+id: 9d3e7b1a-5c2f-4902-8f1b-4a6c8e3d2018
+status: stable
+description: Correlation rule detecting LSASS memory access handle acquisition (Sysmon Event ID 10) on an endpoint, immediately followed within 3 minutes by an anomalous outbound network connection (Sysmon Event ID 3 or Zeek conn) to an external destination, indicating exfiltration or C2 beacon sync of harvested credentials.
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://attack.mitre.org/techniques/T1071/001/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.credential_access
+  - attack.command_and_control
+  - attack.t1003.001
+  - attack.t1071.001
+action: correlation
+type: multi_source_sequence
+correlation:
+  type: temporal
+  rules:
+    - rule_stage1_lsass_access
+    - rule_stage2_net_egress
+  group-by:
+    - ComputerName
+  timespan: 3m
+  condition:
+    rule_stage1_lsass_access: '>= 1'
+    rule_stage2_net_egress: '>= 1'
+logsource:
+  category: multi_source
+  product: windows
+detection:
+  rule_stage1_lsass_access:
+    TargetImage|endswith: '\lsass.exe'
+    GrantedAccess|contains:
+      - '0x1010'
+      - '0x1FFFFF'
+  rule_stage2_net_egress:
+    DestinationPort:
+      - 80
+      - 443
+      - 8080
+      - 8443
+      - 9001
+falsepositives:
+  - Security software telemetry uploading endpoint memory inspection alerts to vendor cloud backends.
+level: critical
+fields:
+  - ComputerName
+  - SourceImage
+  - TargetImage
+  - GrantedAccess
+  - DestinationIp
+  - DestinationPort
+rational: Critical severity because rapid network transmission after LSASS access signifies active data exfiltration or operational check-in with stolen master keys.

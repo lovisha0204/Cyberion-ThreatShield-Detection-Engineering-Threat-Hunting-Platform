@@ -1,0 +1,40 @@
+title: PsExec Service Installation for Remote Execution
+id: 8b1c4e72-9a3f-421d-91b7-6e42c8d1f003
+status: stable
+description: Detects the installation or execution of the PsExec service wrapper (PSEXESVC.exe) or custom remote service binaries frequently abused by adversaries for remote command execution and lateral movement.
+references:
+  - https://attack.mitre.org/techniques/T1569/002/
+  - https://attack.mitre.org/techniques/T1021/002/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.execution
+  - attack.lateral_movement
+  - attack.t1569.002
+  - attack.t1021.002
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_psexec_service:
+    Image|endswith:
+      - '\PSEXESVC.exe'
+      - '\psexec.exe'
+  selection_parent:
+    ParentImage|endswith:
+      - '\services.exe'
+  selection_cmdline:
+    CommandLine|contains:
+      - 'PSEXESVC'
+      - '-accepteula'
+  condition: selection_psexec_service or (selection_parent and selection_cmdline)
+falsepositives:
+  - Legitimate IT systems administration, helpdesk software, or patch management tools utilizing Sysinternals PsExec.
+level: high
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: High severity because PsExec execution indicates administrative credentials are being used to establish interactive or automated footholds across remote hosts.

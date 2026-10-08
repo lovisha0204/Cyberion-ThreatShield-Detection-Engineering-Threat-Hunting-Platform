@@ -1,0 +1,40 @@
+title: Defense Evasion via Suspicious Mshta Execution
+id: 1c7e9a2b-8d4f-4091-b3e5-7a6c9d1f8013
+status: stable
+description: Detects the execution of Microsoft HTML Application Host (mshta.exe) with inline scripts (vbscript, javascript) or downloading remote .hta files from the internet, bypassing application control solutions.
+references:
+  - https://attack.mitre.org/techniques/T1218/005/
+  - https://lolbas-project.github.io/lolbas/Binaries/Mshta/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.defense_evasion
+  - attack.execution
+  - attack.t1218.005
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|endswith: '\mshta.exe'
+  selection_inline_script:
+    CommandLine|contains:
+      - 'vbscript:'
+      - 'javascript:'
+      - 'about:'
+  selection_network_path:
+    CommandLine|contains:
+      - 'http://'
+      - 'https://'
+      - '\\\\'
+  condition: selection_img and (selection_inline_script or selection_network_path)
+falsepositives:
+  - Rare legacy internal enterprise desktop utilities utilizing Microsoft HTML Applications.
+level: high
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: High severity because mshta executes unconstrained VBScript/JScript outside of standard PowerShell/cmd logging constraints, frequently delivering initial payloads.

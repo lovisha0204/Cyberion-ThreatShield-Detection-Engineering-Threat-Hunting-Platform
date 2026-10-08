@@ -1,0 +1,41 @@
+title: Active Directory Database Extraction via Volume Shadow Copy
+id: 6e1a4d8b-2c5e-491f-9a0d-8b3f2e1c9006
+status: stable
+description: Detects command-line activity attempting to create Volume Shadow Copies or invoke utilities (vssadmin, ntdsutil, esentutl) to extract ntds.dit, the Active Directory database containing domain credential hashes.
+references:
+  - https://attack.mitre.org/techniques/T1003/003/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.credential_access
+  - attack.t1003.003
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vssadmin:
+    Image|endswith: '\vssadmin.exe'
+    CommandLine|contains:
+      - 'create shadow'
+      - 'delete shadows'
+  selection_ntdsutil:
+    Image|endswith: '\ntdsutil.exe'
+    CommandLine|contains:
+      - 'ntds'
+      - 'ifm'
+      - 'ac i ntds'
+  selection_esentutl:
+    Image|endswith: '\esentutl.exe'
+    CommandLine|contains:
+      - 'ntds.dit'
+  condition: selection_vssadmin or selection_ntdsutil or selection_esentutl
+falsepositives:
+  - Legitimate scheduled enterprise backup routines (e.g. Veeam, Commvault, Windows Server Backup).
+level: critical
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: Critical severity because exfiltration of ntds.dit enables total Active Directory domain compromise through offline golden ticket generation and hash extraction.

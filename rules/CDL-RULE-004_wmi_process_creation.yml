@@ -1,0 +1,43 @@
+title: WMI Remote Process Creation
+id: 9a2d3b4c-8e1f-4b72-a09c-7f51b6e4f004
+status: stable
+description: Detects processes spawned via Windows Management Instrumentation (WMI Provider Service wmiprvse.exe) or invocations of wmic.exe creating processes, typical of remote code execution or stealthy local execution.
+references:
+  - https://attack.mitre.org/techniques/T1047/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.execution
+  - attack.t1047
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_parent:
+    ParentImage|endswith: '\wmiprvse.exe'
+  selection_spawned:
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\rundll32.exe'
+      - '\mshta.exe'
+      - '\cscript.exe'
+      - '\wscript.exe'
+      - '\certutil.exe'
+  selection_wmic_cli:
+    Image|endswith: '\wmic.exe'
+    CommandLine|contains:
+      - 'process call create'
+      - 'process create'
+  condition: (selection_parent and selection_spawned) or selection_wmic_cli
+falsepositives:
+  - Legitimate enterprise orchestration or inventory agents (e.g. SCCM, Tanium, Lansweeper) utilizing WMI for system queries.
+level: high
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: High severity because WMI execution bypasses traditional endpoint barriers and facilitates agentless lateral movement without dropped binaries.

@@ -1,0 +1,69 @@
+[
+  {
+    "_id": "BENIGN-EVT-001",
+    "description": "Legitimate NinjaRMM agent executing administrative download cradle (should be filtered by CDL-RULE-001)",
+    "timestamp": "2026-10-08T10:15:00.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-ADMIN-01",
+    "User": "NT AUTHORITY\\SYSTEM",
+    "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "CommandLine": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& { IEX (New-Object Net.WebClient).DownloadString('https://rmm.cyberion.local/agent/update.ps1') }\" -WorkingDirectory \"C:\\Program Files\\NinjaRMM\\scripts\\\"",
+    "ParentImage": "C:\\Program Files\\NinjaRMM\\NinjaRMMAgent.exe"
+  },
+  {
+    "_id": "BENIGN-EVT-002",
+    "description": "Microsoft Defender ATP agent inspecting LSASS process (should be filtered by CDL-RULE-002)",
+    "timestamp": "2026-10-08T10:18:22.000Z",
+    "logsource": "windows_process_access",
+    "ComputerName": "WKSTN-FIN-01",
+    "SourceImage": "C:\\Program Files\\Windows Defender Advanced Threat Protection\\MsSense.exe",
+    "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+    "GrantedAccess": "0x1410",
+    "CallTrace": "C:\\Windows\\System32\\ntdll.dll+9fb84"
+  },
+  {
+    "_id": "BENIGN-EVT-003",
+    "description": "Google Chrome update task creation (should be filtered by CDL-RULE-009)",
+    "timestamp": "2026-10-08T10:25:40.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-MKTG-01",
+    "User": "CYBERION\\alice",
+    "Image": "C:\\Windows\\System32\\schtasks.exe",
+    "CommandLine": "schtasks.exe /create /tn \"GoogleUpdateTaskUser\" /tr \"\\\"C:\\Program Files\\Google\\Update\\GoogleUpdate.exe\\\" /ua /installsource scheduler\" /sc daily /st 12:00",
+    "ParentImage": "C:\\Program Files\\Google\\Update\\GoogleUpdate.exe"
+  },
+  {
+    "_id": "BENIGN-EVT-004",
+    "description": "Legitimate DKIM DNS TXT query (should be filtered by CDL-RULE-011)",
+    "timestamp": "2026-10-08T10:30:12.000Z",
+    "logsource": "zeek_dns",
+    "id.orig_h": "192.168.10.50",
+    "id.resp_h": "8.8.8.8",
+    "qtype_name": "TXT",
+    "query": "google._domainkey.cyberionlabs.com",
+    "answers": ["\"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQ...\""]
+  },
+  {
+    "_id": "BENIGN-EVT-005",
+    "description": "Normal Kerberos TGS request for domain computer account (should be filtered by CDL-RULE-015)",
+    "timestamp": "2026-10-08T10:35:00.000Z",
+    "logsource": "windows_security",
+    "EventID": 4769,
+    "ComputerName": "DC-01",
+    "TargetUserName": "WKSTN-FIN-01$@CYBERION.LOCAL",
+    "ServiceName": "host/WKSTN-FIN-01.cyberion.local$",
+    "TicketEncryptionType": "0x12",
+    "IpAddress": "192.168.10.115"
+  },
+  {
+    "_id": "BENIGN-EVT-006",
+    "description": "Normal single interactive user logon (does not trigger brute-force correlation)",
+    "timestamp": "2026-10-08T10:40:00.000Z",
+    "logsource": "windows_security",
+    "EventID": 4624,
+    "LogonType": 2,
+    "ComputerName": "WKSTN-FIN-01",
+    "TargetUserName": "jdoe",
+    "IpAddress": "127.0.0.1"
+  }
+]

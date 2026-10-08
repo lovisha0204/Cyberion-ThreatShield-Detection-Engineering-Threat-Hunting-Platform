@@ -1,0 +1,50 @@
+title: Multiple Failed Logons Followed by Successful Logon (Brute Force to Compromise)
+id: 7b2e1c9d-4f0a-4832-b1d5-9a8c3e2f1016
+status: stable
+description: Correlation rule detecting a sequence of 5 or more failed logon attempts (Event ID 4625) followed by a successful logon (Event ID 4624) from the same source IP within a 5-minute time window, indicating password guessing or credential spraying leading to initial access.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+  - https://attack.mitre.org/techniques/T1078/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.credential_access
+  - attack.initial_access
+  - attack.t1110
+  - attack.t1078
+action: correlation
+type: temporal
+correlation:
+  type: event_count
+  rules:
+    - rule_failed_logons
+    - rule_successful_logon
+  group-by:
+    - IpAddress
+    - TargetUserName
+  timespan: 5m
+  condition:
+    rule_failed_logons: '>= 5'
+    rule_successful_logon: '>= 1'
+logsource:
+  category: security
+  product: windows
+detection:
+  rule_failed_logons:
+    EventID: 4625
+  rule_successful_logon:
+    EventID: 4624
+    LogonType:
+      - 2
+      - 3
+      - 10
+falsepositives:
+  - User forgetting password repeatedly and entering correct credentials on the 6th attempt.
+  - Stale cached domain credentials on a shared mobile device.
+level: high
+fields:
+  - ComputerName
+  - TargetUserName
+  - IpAddress
+  - LogonType
+rational: High severity because a sudden successful logon immediately preceded by brute-force failures provides strong corroboration of unauthorized credential cracking.

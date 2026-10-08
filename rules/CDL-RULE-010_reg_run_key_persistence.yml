@@ -1,0 +1,47 @@
+title: Persistence via Registry Run Key Modification
+id: 3a9d7e1c-6b2f-4801-a1e4-8f0c9b2d3010
+status: stable
+description: Detects registry value modifications within the CurrentVersion\Run or CurrentVersion\RunOnce keys pointing to executable payloads, script interpreters, or user-writable locations.
+references:
+  - https://attack.mitre.org/techniques/T1547/001/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.persistence
+  - attack.t1547.001
+logsource:
+  category: registry_set
+  product: windows
+detection:
+  selection_target_key:
+    TargetObject|contains:
+      - '\Microsoft\Windows\CurrentVersion\Run\'
+      - '\Microsoft\Windows\CurrentVersion\RunOnce\'
+      - '\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run'
+  selection_payload_type:
+    Details|contains:
+      - '.exe'
+      - '.bat'
+      - '.vbs'
+      - '.ps1'
+      - 'cmd.exe'
+      - 'powershell'
+      - 'wscript'
+      - 'rundll32'
+      - 'mshta'
+  filter_legitimate_apps:
+    Details|contains:
+      - 'C:\Program Files\Google\Chrome\'
+      - 'C:\Program Files (x86)\Microsoft\Edge\'
+      - 'C:\Program Files\Windows Defender\'
+  condition: selection_target_key and selection_payload_type and not filter_legitimate_apps
+falsepositives:
+  - Legitimate user software installers configuring auto-start entries for desktop applications.
+level: medium
+fields:
+  - ComputerName
+  - User
+  - Image
+  - TargetObject
+  - Details
+rational: Medium severity because registry Run keys remain one of the most reliable and prevalent persistence mechanisms across Windows platforms.

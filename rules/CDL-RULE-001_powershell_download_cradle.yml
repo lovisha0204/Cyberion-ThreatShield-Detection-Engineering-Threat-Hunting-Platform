@@ -1,0 +1,50 @@
+title: Suspicious PowerShell Download Cradle
+id: 3c8e4e6b-71a2-4a4f-9e6b-0b29e612f001
+status: stable
+description: Detects the execution of PowerShell commands utilizing download cradles (e.g. Net.WebClient, DownloadString, Invoke-WebRequest, or IEX) commonly used by attackers to stage malicious scripts into memory.
+references:
+  - https://attack.mitre.org/techniques/T1059/001/
+  - https://github.com/OTRF/detection-hackathon-2020
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.execution
+  - attack.t1059.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+  selection_cradle:
+    CommandLine|contains:
+      - 'Net.WebClient'
+      - 'DownloadString'
+      - 'DownloadFile'
+      - 'Invoke-WebRequest'
+      - 'iwr '
+      - 'irm '
+      - 'curl.exe'
+  selection_execution:
+    CommandLine|contains:
+      - 'IEX'
+      - 'Invoke-Expression'
+      - '[ScriptBlock]::Create'
+  filter_legit_rmm:
+    CommandLine|contains:
+      - 'C:\Program Files\NinjaRMM\'
+      - 'C:\Program Files (x86)\Kaseya\'
+  condition: (selection_img and selection_cradle and selection_execution) and not filter_legit_rmm
+falsepositives:
+  - Legitimate automated administrative scripts or deployment agents (e.g. NinjaRMM, SCCM) downloading updates.
+  - Development build agents downloading dependencies.
+level: high
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: High severity because in-memory execution cradles are the predominant method for establishing footholds and evading disk-based antivirus scans.

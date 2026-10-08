@@ -1,0 +1,285 @@
+{
+  "name": "Cyberion Defense Labs - Detection Coverage Matrix Layer (CDL-DET-V2)",
+  "versions": {
+    "attack": "14",
+    "navigator": "4.8.2",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "Enterprise ATT&CK technique coverage for Cyberion Defense Labs detection engineering and threat hunting engagement.",
+  "filters": {
+    "platforms": [
+      "Windows",
+      "Network"
+    ]
+  },
+  "sorting": 0,
+  "layout": {
+    "layout": "side",
+    "aggregateFunction": "average",
+    "showID": true,
+    "showName": true,
+    "showAggregateScores": false,
+    "countUnscored": false
+  },
+  "hideDisabled": false,
+  "techniques": [
+    {
+      "techniqueID": "T1078",
+      "tactic": "initial-access",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-016 (Temporal Brute Force to Success Correlation)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-016"}]
+    },
+    {
+      "techniqueID": "T1566.001",
+      "tactic": "initial-access",
+      "score": 50,
+      "color": "#ffc107",
+      "comment": "Partially Covered: Phishing attachments spawning LOLBAS scripts (CDL-RULE-013, INC-001)",
+      "enabled": true,
+      "metadata": [{"name": "Status", "value": "Partial"}]
+    },
+    {
+      "techniqueID": "T1059.001",
+      "tactic": "execution",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-001 (PowerShell Download Cradles)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-001"}]
+    },
+    {
+      "techniqueID": "T1059.003",
+      "tactic": "execution",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-004 and CDL-RULE-017 (Cmd execution lineage)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-004, CDL-RULE-017"}]
+    },
+    {
+      "techniqueID": "T1047",
+      "tactic": "execution",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-004 (WMI Remote Process Creation) and CDL-HUNT-02",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-004"}]
+    },
+    {
+      "techniqueID": "T1204.002",
+      "tactic": "execution",
+      "score": 50,
+      "color": "#ffc107",
+      "comment": "Partially Covered via child process monitoring from user execution",
+      "enabled": true,
+      "metadata": [{"name": "Status", "value": "Partial"}]
+    },
+    {
+      "techniqueID": "T1547.001",
+      "tactic": "persistence",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-010 (Registry Run Key Persistence)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-010"}]
+    },
+    {
+      "techniqueID": "T1053.005",
+      "tactic": "persistence",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-009 (Scheduled Task Creation via Schtasks)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-009"}]
+    },
+    {
+      "techniqueID": "T1098",
+      "tactic": "persistence",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-007 (Privileged Security Group Addition)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-007"}]
+    },
+    {
+      "techniqueID": "T1136.001",
+      "tactic": "persistence",
+      "score": 50,
+      "color": "#ffc107",
+      "comment": "Partially Covered via Event 4720 local account creations",
+      "enabled": true,
+      "metadata": [{"name": "Status", "value": "Partial"}]
+    },
+    {
+      "techniqueID": "T1078.002",
+      "tactic": "privilege-escalation",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-007 and CDL-RULE-016 (Domain Accounts)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-007"}]
+    },
+    {
+      "techniqueID": "T1543.003",
+      "tactic": "privilege-escalation",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-003 (PsExec / Remote Service Creation)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-003"}]
+    },
+    {
+      "techniqueID": "T1218.005",
+      "tactic": "defense-evasion",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-013 (Suspicious Mshta Execution)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-013"}]
+    },
+    {
+      "techniqueID": "T1218.011",
+      "tactic": "defense-evasion",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-008 (Suspicious Rundll32 Execution)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-008"}]
+    },
+    {
+      "techniqueID": "T1105",
+      "tactic": "defense-evasion",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-012 (Certutil Ingress Tool Transfer)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-012"}]
+    },
+    {
+      "techniqueID": "T1562.001",
+      "tactic": "defense-evasion",
+      "score": 0,
+      "color": "#dc3545",
+      "comment": "Not Covered: Antivirus and Sysmon service tampering blind spot",
+      "enabled": true,
+      "metadata": [{"name": "Status", "value": "Gap"}]
+    },
+    {
+      "techniqueID": "T1003.001",
+      "tactic": "credential-access",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-002 and CDL-RULE-018 (LSASS Memory Dump)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-002, CDL-RULE-018"}]
+    },
+    {
+      "techniqueID": "T1003.003",
+      "tactic": "credential-access",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-006 (NTDS.dit Shadow Copy Extraction)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-006"}]
+    },
+    {
+      "techniqueID": "T1558.003",
+      "tactic": "credential-access",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-015 (Kerberoasting SPN Requests)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-015"}]
+    },
+    {
+      "techniqueID": "T1110",
+      "tactic": "credential-access",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-016 (Brute Force to Success Correlation)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-016"}]
+    },
+    {
+      "techniqueID": "T1087.002",
+      "tactic": "discovery",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-017 (Domain Recon to Lateral Movement)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-017"}]
+    },
+    {
+      "techniqueID": "T1082",
+      "tactic": "discovery",
+      "score": 50,
+      "color": "#ffc107",
+      "comment": "Partially Covered via Threat Hunt CDL-HUNT-02 (LOLBAS Discovery)",
+      "enabled": true,
+      "metadata": [{"name": "HuntID", "value": "CDL-HUNT-02"}]
+    },
+    {
+      "techniqueID": "T1021.002",
+      "tactic": "lateral-movement",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-003 and CDL-RULE-017 (SMB / PsExec / WMI)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-003, CDL-RULE-017"}]
+    },
+    {
+      "techniqueID": "T1021.001",
+      "tactic": "lateral-movement",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-014 (RDP Port Tunneling via Netsh)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-014"}]
+    },
+    {
+      "techniqueID": "T1071.001",
+      "tactic": "command-and-control",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-005, CDL-RULE-018, and CDL-HUNT-01 (HTTP C2)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-005"}]
+    },
+    {
+      "techniqueID": "T1071.004",
+      "tactic": "command-and-control",
+      "score": 100,
+      "color": "#28a745",
+      "comment": "Covered via CDL-RULE-011 (DNS TXT Record Tunneling)",
+      "enabled": true,
+      "metadata": [{"name": "RuleID", "value": "CDL-RULE-011"}]
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#dc3545",
+      "#ffc107",
+      "#28a745"
+    ],
+    "minValue": 0,
+    "maxValue": 100
+  },
+  "legendItems": [
+    {
+      "color": "#28a745",
+      "label": "Covered (Sigma Detection Rule in Production)"
+    },
+    {
+      "color": "#ffc107",
+      "label": "Partially Covered (Specific Procedure or Threat Hunt)"
+    },
+    {
+      "color": "#dc3545",
+      "label": "Not Covered (Identified Gap / Backlog)"
+    }
+  ]
+}

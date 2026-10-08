@@ -1,0 +1,48 @@
+title: Suspicious C2 Beaconing via HTTP Telemetry
+id: 1f4b8c9d-3e2a-45f1-b8d7-9e6a0c5b2005
+status: stable
+description: Detects suspicious HTTP outbound communications exhibiting anomalous request characteristics commonly observed in Command and Control (C2) beaconing, such as raw IP destination hosts, missing or generic user agents, and structured C2 URI endpoints.
+references:
+  - https://attack.mitre.org/techniques/T1071/001/
+  - https://www.sans.org/blog/hunting-for-c2-beacons/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.command_and_control
+  - attack.t1071.001
+logsource:
+  category: network_traffic
+  product: zeek
+detection:
+  selection_c2_patterns:
+    uri|contains:
+      - '/api/v1/heartbeat'
+      - '/match/submit.php'
+      - '/news/update.php'
+      - '/push.php'
+      - '/beacon.txt'
+  selection_anomalous_headers:
+    user_agent|contains:
+      - 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)'
+      - 'Cobalt'
+      - 'Sliver'
+      - 'curl/'
+      - 'Python-urllib'
+  selection_port:
+    id.resp_p:
+      - 8080
+      - 8443
+      - 8888
+      - 7001
+  condition: selection_c2_patterns or (selection_anomalous_headers and selection_port)
+falsepositives:
+  - Legacy internal web services using deprecated user agents.
+  - Development tools testing internal REST APIs on port 8080.
+level: high
+fields:
+  - id.orig_h
+  - id.resp_h
+  - id.resp_p
+  - uri
+  - user_agent
+rational: High severity because outbound interactive beaconing confirms active perimeter egress and adversary communication channels.

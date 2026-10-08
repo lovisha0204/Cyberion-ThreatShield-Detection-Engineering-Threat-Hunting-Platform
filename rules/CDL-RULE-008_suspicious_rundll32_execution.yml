@@ -1,0 +1,42 @@
+title: Suspicious Rundll32 Execution from User Directory
+id: 7d2c9e1b-4a5f-4638-98e2-0c8a5f3d7008
+status: stable
+description: Detects Rundll32.exe loading dynamic link libraries (DLLs) from suspicious user-writable directories (AppData, Temp, Public) or using unusual ordinal function exports, typical of defense evasion and payload proxy execution.
+references:
+  - https://attack.mitre.org/techniques/T1218/011/
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.defense_evasion
+  - attack.execution
+  - attack.t1218.011
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|endswith: '\rundll32.exe'
+  selection_path:
+    CommandLine|contains:
+      - '\AppData\Local\Temp\'
+      - '\AppData\Roaming\'
+      - 'C:\Users\Public\'
+      - 'C:\PerfLogs\'
+      - 'C:\Windows\Temp\'
+  selection_ordinal:
+    CommandLine|contains:
+      - ',#1'
+      - ',#2'
+      - ',DllRegisterServer'
+      - 'javascript:'
+  condition: selection_img and (selection_path or selection_ordinal)
+falsepositives:
+  - Third-party software installers executing temporary DLL helpers from AppData\Local\Temp.
+level: medium
+fields:
+  - ComputerName
+  - User
+  - Image
+  - CommandLine
+  - ParentImage
+rational: Medium severity because Rundll32 is frequently leveraged by commodity loaders and Cobalt Strike stagers to disguise malicious payload execution.

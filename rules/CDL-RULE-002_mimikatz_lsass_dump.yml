@@ -1,0 +1,42 @@
+title: LSASS Memory Access for Credential Dumping
+id: 5a7f9d8e-14b3-4f92-8a1c-3b74d9e0f002
+status: stable
+description: Detects suspicious process access requests to Local Security Authority Subsystem Service (LSASS) with granted access masks typical of credential extraction tools such as Mimikatz, ProcDump, or Dumpert.
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+author: Cyberion Detection Engineering
+date: 2026-10-08
+tags:
+  - attack.credential_access
+  - attack.t1003.001
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection_target:
+    TargetImage|endswith: '\lsass.exe'
+  selection_access:
+    GrantedAccess|contains:
+      - '0x1010'
+      - '0x1FFFFF'
+      - '0x1410'
+      - '0x1438'
+  filter_legitimate_edr:
+    SourceImage|endswith:
+      - '\MsSense.exe'
+      - '\svchost.exe'
+      - '\csrss.exe'
+      - '\wmiprvse.exe'
+  condition: selection_target and selection_access and not filter_legitimate_edr
+falsepositives:
+  - Legitimate security agents, antivirus endpoint protection scanners, or Windows Error Reporting accessing LSASS.
+  - Performance monitoring tools querying system process metrics.
+level: critical
+fields:
+  - ComputerName
+  - SourceImage
+  - TargetImage
+  - GrantedAccess
+  - CallTrace
+rational: Critical severity because successful LSASS memory reads allow unprivileged or compromised administrators to extract plaintext passwords and NTLM hashes, enabling immediate domain-wide lateral movement.
