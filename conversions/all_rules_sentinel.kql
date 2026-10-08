@@ -1,0 +1,138 @@
+// ==============================================================================
+// CYBERION DEFENSE LABS - FULL MICROSOFT SENTINEL KQL CATALOG (18 RULES)
+// Project Reference: CDL-DET-V2
+// ==============================================================================
+
+// [CDL-RULE-001] Suspicious PowerShell Download Cradle (T1059.001)
+DeviceProcessEvents
+| where FileName in~ ("powershell.exe", "pwsh.exe")
+| where ProcessCommandLine has_any ("Net.WebClient", "DownloadString", "DownloadFile", "Invoke-WebRequest", "iwr ", "irm ", "curl.exe")
+| where ProcessCommandLine has_any ("IEX", "Invoke-Expression", "[ScriptBlock]::Create")
+| where not(ProcessCommandLine has_any (@"C:\Program Files\NinjaRMM\", @"C:\Program Files (x86)\Kaseya\"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
+
+// [CDL-RULE-002] LSASS Memory Access for Credential Dumping (T1003.001)
+DeviceEvents
+| where ActionType == "OpenProcessApiCall"
+| where FileName =~ "lsass.exe"
+| where AdditionalFields has_any ("0x1010", "0x1FFFFF", "0x1410", "0x1438")
+| where not(InitiatingProcessFileName in~ ("MsSense.exe", "svchost.exe", "csrss.exe", "wmiprvse.exe"))
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, FileName, AdditionalFields
+
+// [CDL-RULE-003] PsExec Service Installation for Remote Execution (T1569.002, T1021.002)
+DeviceProcessEvents
+| where FileName in~ ("PSEXESVC.exe", "psexec.exe")
+    or (InitiatingProcessFileName =~ "services.exe" and ProcessCommandLine has_any ("PSEXESVC", "-accepteula"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine
+
+// [CDL-RULE-004] WMI Remote Process Creation (T1047)
+DeviceProcessEvents
+| where (InitiatingProcessFileName =~ "wmiprvse.exe" and FileName in~ ("cmd.exe", "powershell.exe", "pwsh.exe", "rundll32.exe", "mshta.exe"))
+    or (FileName =~ "wmic.exe" and ProcessCommandLine has_any ("process call create", "process create"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine
+
+// [CDL-RULE-005] Suspicious C2 Beaconing via HTTP (T1071.001)
+DeviceNetworkEvents
+| where RemoteUrl has_any ("/api/v1/heartbeat", "/match/submit.php", "/news/update.php", "/push.php", "/beacon.txt")
+    or (AdditionalFields has_any ("Cobalt", "Sliver", "curl/", "Python-urllib") and RemotePort in (8080, 8443, 8888, 7001))
+| project TimeGenerated, DeviceName, LocalIP, RemoteIP, RemotePort, RemoteUrl
+
+// [CDL-RULE-006] Active Directory Database Extraction via Volume Shadow Copy (T1003.003)
+DeviceProcessEvents
+| where (FileName =~ "vssadmin.exe" and ProcessCommandLine has_any ("create shadow", "delete shadows"))
+    or (FileName =~ "ntdsutil.exe" and ProcessCommandLine has_any ("ntds", "ifm", "ac i ntds"))
+    or (FileName =~ "esentutl.exe" and ProcessCommandLine has "ntds.dit")
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine
+
+// [CDL-RULE-007] Account Added to Privileged Domain Security Group (T1098, T1078.002)
+SecurityEvent
+| where EventID in (4728, 4732, 4756)
+| where TargetUserName has_any ("Domain Admins", "Enterprise Admins", "Schema Admins", "Administrators")
+| project TimeGenerated, Computer, SubjectUserName, TargetUserName, MemberName
+
+// [CDL-RULE-008] Suspicious Rundll32 Execution from User Directory (T1218.011)
+DeviceProcessEvents
+| where FileName =~ "rundll32.exe"
+| where ProcessCommandLine has_any (@"\AppData\Local\Temp\", @"\AppData\Roaming\", @"C:\Users\Public\", ",#1", ",#2")
+| project TimeGenerated, DeviceName, AccountName, ProcessCommandLine
+
+// [CDL-RULE-009] Suspicious Scheduled Task Creation via Schtasks (T1053.005)
+DeviceProcessEvents
+| where FileName =~ "schtasks.exe" and ProcessCommandLine has_any ("/create", "-create")
+| where ProcessCommandLine has_any ("powershell", "cmd.exe", "wscript", "/ru system", "/ru NT AUTHORITY\\SYSTEM")
+| project TimeGenerated, DeviceName, AccountName, ProcessCommandLine
+
+// [CDL-RULE-010] Persistence via Registry Run Key Modification (T1547.001)
+DeviceRegistryEvents
+| where RegistryKey has_any (@"\Microsoft\Windows\CurrentVersion\Run\", @"\Microsoft\Windows\CurrentVersion\RunOnce\")
+| where RegistryValueData has_any (".exe", ".ps1", ".bat", "powershell")
+| where not(RegistryValueData has_any (@"C:\Program Files\Google\Chrome\", @"C:\Program Files\Windows Defender\"))
+| project TimeGenerated, DeviceName, RegistryKey, RegistryValueName, RegistryValueData
+
+// [CDL-RULE-011] Potential DNS Tunneling or Exfiltration via TXT Queries (T1071.004)
+DnsEvents
+| where QueryType == "TXT"
+| where Name has_any (".tunnel.", ".c2.", ".dnsc2.", ".stage01.")
+| where not(Name has_any ("_domainkey.", "_spf."))
+| project TimeGenerated, ClientIP, Name, IPAddresses
+
+// [CDL-RULE-012] Ingress Tool Transfer via Certutil Living-Off-The-Land Binary (T1105)
+DeviceProcessEvents
+| where FileName =~ "certutil.exe"
+| where ProcessCommandLine has_any ("-urlcache", "/urlcache") and ProcessCommandLine has_any ("-split", "/split")
+| where ProcessCommandLine has_any ("http://", "https://")
+| project TimeGenerated, DeviceName, AccountName, ProcessCommandLine
+
+// [CDL-RULE-013] Defense Evasion via Suspicious Mshta Execution (T1218.005)
+DeviceProcessEvents
+| where FileName =~ "mshta.exe"
+| where ProcessCommandLine has_any ("vbscript:", "javascript:", "about:", "http://", "https://")
+| project TimeGenerated, DeviceName, AccountName, ProcessCommandLine
+
+// [CDL-RULE-014] Remote Desktop Port Tunneling via Netsh Portproxy (T1021.001)
+DeviceProcessEvents
+| where FileName =~ "netsh.exe"
+| where ProcessCommandLine has "portproxy" and ProcessCommandLine has "connectport=3389"
+| project TimeGenerated, DeviceName, AccountName, ProcessCommandLine
+
+// [CDL-RULE-015] Kerberoasting Ticket Request with RC4 Encryption (T1558.003)
+SecurityEvent
+| where EventID == 4769
+| where TicketEncryptionType == "0x17"
+| where not(ServiceName endswith "$" or ServiceName =~ "krbtgt")
+| project TimeGenerated, Computer, TargetUserName, ServiceName, TicketEncryptionType, IpAddress
+
+// [CDL-RULE-016] Correlation - Brute Force Followed by Successful Logon (T1110 -> T1078)
+let timeframe = 5m;
+SecurityEvent
+| where EventID in (4625, 4624)
+| summarize 
+    FailedLogons = countif(EventID == 4625),
+    SuccessfulLogons = countif(EventID == 4624),
+    FirstFailure = minif(TimeGenerated, EventID == 4625),
+    FirstSuccess = minif(TimeGenerated, EventID == 4624)
+    by IpAddress, TargetUserName, bin(TimeGenerated, timeframe)
+| where FailedLogons >= 5 and SuccessfulLogons >= 1 and FirstSuccess > FirstFailure
+| project TimeGenerated, IpAddress, TargetUserName, FailedLogons, SuccessfulLogons
+
+// [CDL-RULE-017] Correlation - Domain Reconnaissance Followed by Remote Execution (T1087 -> T1021)
+let timeframe = 10m;
+DeviceProcessEvents
+| extend IsRecon = iff(ProcessCommandLine has_any ("Domain Admins", "/domain", "/dclist:"), 1, 0),
+         IsLateral = iff(ProcessCommandLine has "process call create" or FileName in~ ("PSEXESVC.exe", "psexec.exe"), 1, 0)
+| summarize ReconOps = sum(IsRecon), LateralOps = sum(IsLateral) by DeviceName, AccountName, bin(TimeGenerated, timeframe)
+| where ReconOps >= 1 and LateralOps >= 1
+| project TimeGenerated, DeviceName, AccountName, ReconOps, LateralOps
+
+// [CDL-RULE-018] Correlation - LSASS Dump Followed by Outbound Egress (T1003.001 -> T1071.001)
+let timeframe = 3m;
+let Dumps = DeviceEvents
+    | where ActionType == "OpenProcessApiCall" and FileName =~ "lsass.exe" and AdditionalFields has_any ("0x1010", "0x1FFFFF")
+    | project DumpTime = TimeGenerated, DeviceName;
+let Egress = DeviceNetworkEvents
+    | where RemotePort in (80, 443, 8080, 8443, 9001)
+    | project EgressTime = TimeGenerated, DeviceName, RemoteIP, RemotePort;
+Dumps
+| join kind=inner (Egress) on DeviceName
+| where EgressTime between (DumpTime .. (DumpTime + timeframe))
+| project DumpTime, EgressTime, DeviceName, RemoteIP, RemotePort

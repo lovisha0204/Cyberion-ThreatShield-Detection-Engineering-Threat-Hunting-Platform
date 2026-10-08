@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberion Defense Labs — Detection Engineering & Threat Hunting Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --card-bg: #151922;
+      --border: #232936;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #cbd5e1;
+      --text-muted: #64748b;
+      --heading: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-title { font-size: 1.25rem; font-weight: 700; color: var(--heading); letter-spacing: 0.5px; }
+    .brand-title span { color: var(--accent); }
+    .badge-status { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+    
+    .container { max-width: 1400px; margin: 28px auto; padding: 0 24px; }
+    
+    /* KPI Stats */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 28px; }
+    .kpi-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center; }
+    .kpi-num { font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+    .kpi-title { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Nav Tabs */
+    .tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; padding: 12px 18px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab-btn:hover { color: var(--heading); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Tab Content */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    
+    /* Cards and Grids */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+    .card h3 { color: var(--heading); font-size: 1.15rem; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th { text-align: left; padding: 10px 14px; background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: rgba(255,255,255,0.015); }
+    
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .tag-critical { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .tag-high { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-medium { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .tag-covered { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-partial { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-gap { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 24px; margin-top: 16px; border-left: 2px solid var(--border); }
+    .timeline-item { position: relative; margin-bottom: 18px; }
+    .timeline-item::before { content: ""; position: absolute; left: -31px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+    .timeline-time { font-size: 0.8rem; color: var(--text-muted); }
+    .timeline-desc { font-size: 0.95rem; color: var(--heading); margin-top: 2px; }
+
+    code { background: #0b0e14; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; color: #38bdf8; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">CYBERION <span>DEFENSE LABS</span> — OPERATIONS PORTAL</div>
+    <div class="badge-status">● HARNESS VALIDATION: 100% PASS (18/18 RULES)</div>
+  </header>
+
+  <div class="container">
+    <!-- Top KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-box">
+        <div class="kpi-num">18</div>
+        <div class="kpi-title">Sigma Rules in Prod</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num">26</div>
+        <div class="kpi-title">ATT&CK Techniques</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num">96.1%</div>
+        <div class="kpi-title">Coverage Efficacy</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num">2</div>
+        <div class="kpi-title">Threat Hunts</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num">2</div>
+        <div class="kpi-title">Confirmed Incidents</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num">99.6%</div>
+        <div class="kpi-title">FP Alert Reduction</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-rules')">Detection Rules (18)</button>
+      <button class="tab-btn" onclick="switchTab('tab-coverage')">MITRE ATT&CK Matrix (26)</button>
+      <button class="tab-btn" onclick="switchTab('tab-hunts')">Threat Hunts (2)</button>
+      <button class="tab-btn" onclick="switchTab('tab-incidents')">Incident Investigations (2)</button>
+      <button class="tab-btn" onclick="switchTab('tab-playbooks')">IR Playbooks (3)</button>
+    </div>
+
+    <!-- TAB 1: Rules -->
+    <div id="tab-rules" class="tab-pane active">
+      <div class="card">
+        <h3>Production Sigma Detection Rule Catalog</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Rule ID</th>
+              <th>Rule Title</th>
+              <th>MITRE Technique</th>
+              <th>Log Source</th>
+              <th>Severity</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>CDL-RULE-001</td><td>PowerShell Download Cradle</td><td><code>T1059.001</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-002</td><td>LSASS Memory Dump</td><td><code>T1003.001</code></td><td>Sysmon Event 10</td><td><span class="tag tag-critical">CRITICAL</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-003</td><td>PsExec Remote Execution</td><td><code>T1569.002</code></td><td>Sysmon / System 7045</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-004</td><td>WMI Remote Process Creation</td><td><code>T1047</code></td><td>Sysmon / WmiPrvSE</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-005</td><td>C2 Periodic HTTP Beaconing</td><td><code>T1071.001</code></td><td>Zeek http.log</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-006</td><td>NTDS.dit Volume Shadow Copy</td><td><code>T1003.003</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-critical">CRITICAL</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-007</td><td>User Added to Domain Admins</td><td><code>T1098</code></td><td>Win Security 4728</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-008</td><td>Suspicious Rundll32 Execution</td><td><code>T1218.011</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-medium">MEDIUM</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-009</td><td>Scheduled Task Creation</td><td><code>T1053.005</code></td><td>Sysmon / Win 4698</td><td><span class="tag tag-medium">MEDIUM</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-010</td><td>Registry Run Key Persistence</td><td><code>T1547.001</code></td><td>Sysmon Event 13</td><td><span class="tag tag-medium">MEDIUM</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-011</td><td>DNS TXT Tunneling / Exfil</td><td><code>T1071.004</code></td><td>Zeek dns.log</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-012</td><td>Certutil Ingress Tool Transfer</td><td><code>T1105</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-013</td><td>Mshta Inline Script Execution</td><td><code>T1218.005</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-014</td><td>Remote Desktop Netsh Tunneling</td><td><code>T1021.001</code></td><td>Sysmon / Win 4688</td><td><span class="tag tag-high">HIGH</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-015</td><td>Kerberoasting SPN Ticket Request</td><td><code>T1558.003</code></td><td>Win Security 4769</td><td><span class="tag tag-medium">MEDIUM</span></td><td>Standard</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-016</td><td>Brute Force to Success Correlation</td><td><code>T1110 -> T1078</code></td><td>Win 4625 -> 4624</td><td><span class="tag tag-high">HIGH</span></td><td>Correlation (5m)</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-017</td><td>Domain Recon to Lateral Hop</td><td><code>T1087 -> T1021</code></td><td>Sysmon Process Tree</td><td><span class="tag tag-high">HIGH</span></td><td>Correlation (10m)</td><td><span class="tag tag-covered">PASS</span></td></tr>
+            <tr><td>CDL-RULE-018</td><td>LSASS Dump to Outbound C2 Egress</td><td><code>T1003.001 -> T1071</code></td><td>Sysmon 10 -> Event 3</td><td><span class="tag tag-critical">CRITICAL</span></td><td>Correlation (3m)</td><td><span class="tag tag-covered">PASS</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: Coverage Matrix -->
+    <div id="tab-coverage" class="tab-pane">
+      <div class="card">
+        <h3>MITRE ATT&CK Enterprise Matrix (26 Techniques Assessed)</h3>
+        <p style="color:var(--text-muted); margin-bottom: 12px;">Covered: 20 (76.9%) | Partially Covered: 5 (19.2%) | Identified Gaps: 1 (3.9%)</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tactic</th>
+              <th>Technique ID</th>
+              <th>Technique Name</th>
+              <th>Status</th>
+              <th>Supporting Detection / Hunt</th>
+              <th>Residual Risk / Roadmap</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Initial Access</td><td><code>T1078</code></td><td>Valid Accounts</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-016</td><td>Cookie theft without brute force</td></tr>
+            <tr><td>Initial Access</td><td><code>T1566.001</code></td><td>Spearphishing Attachment</td><td><span class="tag tag-partial">Partially Covered</span></td><td>CDL-RULE-013, INC-001</td><td>Zero-day payload without child process</td></tr>
+            <tr><td>Execution</td><td><code>T1059.001</code></td><td>PowerShell</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-001</td><td>Unmanaged custom runners</td></tr>
+            <tr><td>Execution</td><td><code>T1047</code></td><td>WMI Execution</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-004</td><td>Direct COM memory invocations</td></tr>
+            <tr><td>Persistence</td><td><code>T1547.001</code></td><td>Registry Run Keys</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-010</td><td>Startup folder LNK dropped directly</td></tr>
+            <tr><td>Persistence</td><td><code>T1053.005</code></td><td>Scheduled Tasks</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-009</td><td>Direct XML write without CLI</td></tr>
+            <tr><td>Privilege Escalation</td><td><code>T1078.002</code></td><td>Domain Accounts</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-007</td><td>Token stealing via unmonitored handles</td></tr>
+            <tr><td>Defense Evasion</td><td><code>T1218.011</code></td><td>Rundll32 Proxy</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-008</td><td>Signed system DLL abuse</td></tr>
+            <tr><td>Defense Evasion</td><td><code>T1562.001</code></td><td>Disable Security Tools</td><td><span class="tag tag-gap">Not Covered</span></td><td>Backlog Sprint</td><td>EDR / Sysmon driver unloading</td></tr>
+            <tr><td>Credential Access</td><td><code>T1003.001</code></td><td>LSASS Memory Dump</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-002, 018</td><td>Kernel PSSnapshots bypass</td></tr>
+            <tr><td>Credential Access</td><td><code>T1003.003</code></td><td>NTDS.dit Shadow Copy</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-006</td><td>Raw NTFS disk reading</td></tr>
+            <tr><td>Credential Access</td><td><code>T1558.003</code></td><td>Kerberoasting</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-015</td><td>AES-256 Kerberoasting requests</td></tr>
+            <tr><td>Discovery</td><td><code>T1082</code></td><td>System Info Discovery</td><td><span class="tag tag-partial">Partially Covered</span></td><td>CDL-HUNT-02</td><td>In-process environment reads</td></tr>
+            <tr><td>Lateral Movement</td><td><code>T1021.002</code></td><td>SMB / Windows Admin Shares</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-003, 017</td><td>Direct named pipe abuse</td></tr>
+            <tr><td>Command & Control</td><td><code>T1071.001</code></td><td>Web Protocols (HTTP/S)</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-005, HUNT-01</td><td>CDN domain fronting</td></tr>
+            <tr><td>Command & Control</td><td><code>T1071.004</code></td><td>DNS Tunneling</td><td><span class="tag tag-covered">Covered</span></td><td>CDL-RULE-011</td><td>Low-frequency TXT requests</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: Hunts -->
+    <div id="tab-hunts" class="tab-pane">
+      <div class="grid-2">
+        <div class="card">
+          <h3>CDL-HUNT-01: Covert HTTP/S C2 Beaconing</h3>
+          <p><strong>Technique Mapped:</strong> <code>T1071.001</code> | <strong>Outcome:</strong> <span class="tag tag-critical">CONFIRMED (True Positive)</span></p>
+          <p style="margin-top: 10px; font-size:0.9rem;"><strong>Hypothesis:</strong> Adversary implant communicating outbound over HTTP/S with regular inter-arrival intervals (mean sleep 45s with &lt;35% jitter).</p>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-time">Analysis</div><div class="timeline-desc">Calculated delta-T variance on 1,412 outbound connections from WKSTN-FIN-01.</div></div>
+            <div class="timeline-item"><div class="timeline-time">Finding</div><div class="timeline-desc">Tight clustering at 45.2s mean interval with standard deviation 5.4s (jitter 11.9%) to 185.106.94.234:8443.</div></div>
+            <div class="timeline-item"><div class="timeline-time">Escalation</div><div class="timeline-desc">Handed off to Incident Case INC-2026-0841; null-routed external C2 on perimeter.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>CDL-HUNT-02: Silent LOLBAS & WMI Reconnaissance</h3>
+          <p><strong>Technique Mapped:</strong> <code>T1082 / T1016</code> (Uncovered) | <strong>Outcome:</strong> <span class="tag tag-critical">CONFIRMED (True Positive)</span></p>
+          <p style="margin-top: 10px; font-size:0.9rem;"><strong>Hypothesis:</strong> Adversary conducting internal situational awareness queries executing 3+ native LOLBAS utilities within a 3-minute burst window under unusual accounts.</p>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-time">Analysis</div><div class="timeline-desc">Audited tumbling 180s windows for whoami, systeminfo, and nltest.</div></div>
+            <div class="timeline-item"><div class="timeline-time">Finding</div><div class="timeline-desc">Isolated WS-FIN-04 executing 5 distinct recon tools under svc_backup initiated via WinRM from WS-MKTG-02 at 02:18 UTC.</div></div>
+            <div class="timeline-item"><div class="timeline-time">Escalation</div><div class="timeline-desc">Handed off to Incident Case INC-2026-0894; disabled service principal immediately.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Incidents -->
+    <div id="tab-incidents" class="tab-pane">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Incident INC-2026-0841: Cobalt Strike & DC Pivot</h3>
+          <p><strong>Severity:</strong> <span class="tag tag-critical">P1 - CRITICAL</span> | <strong>Closure:</strong> <span class="tag tag-covered">TRUE POSITIVE</span></p>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-time">08:22:04 UTC</div><div class="timeline-desc">OUTLOOK spawns WINWORD opening weaponized macro <code>Invoice_Q3.docm</code>.</div></div>
+            <div class="timeline-item"><div class="timeline-time">08:22:15 UTC</div><div class="timeline-desc">PowerShell download cradle fetches stage.ps1 (Triggered CDL-RULE-001).</div></div>
+            <div class="timeline-item"><div class="timeline-time">08:41:12 UTC</div><div class="timeline-desc">Rundll32 dumps LSASS memory (0x1010) stealing da_admin ticket (Triggered CDL-RULE-002).</div></div>
+            <div class="timeline-item"><div class="timeline-time">08:53:15 UTC</div><div class="timeline-desc">PsExec lateral hop installs PSEXESVC on DC-01 (Triggered CDL-RULE-003).</div></div>
+            <div class="timeline-item"><div class="timeline-time">09:18:00 UTC</div><div class="timeline-desc">Workstation quarantined; double krbtgt reset prevented ransomware rollout.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Incident INC-2026-0894: Backup Principal Abuse & NTDS Clone</h3>
+          <p><strong>Severity:</strong> <span class="tag tag-high">P2 - HIGH</span> | <strong>Closure:</strong> <span class="tag tag-covered">TRUE POSITIVE</span></p>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-time">02:15:02 UTC</div><div class="timeline-desc">Network logon to WS-FIN-04 using leaked svc_backup credentials via WinRM.</div></div>
+            <div class="timeline-item"><div class="timeline-time">02:26:05 UTC</div><div class="timeline-desc">Vssadmin creates shadow copy of drive C: on FS-CORP-01 (Triggered CDL-RULE-006).</div></div>
+            <div class="timeline-item"><div class="timeline-time">02:27:12 UTC</div><div class="timeline-desc">Attacker copies ntds.dit and saves SYSTEM registry hive to Public directory.</div></div>
+            <div class="timeline-item"><div class="timeline-time">02:35:18 UTC</div><div class="timeline-desc">DNS TXT tunneling probe to stage01.tunnel.data-exfil-c2.net (Triggered CDL-RULE-011).</div></div>
+            <div class="timeline-item"><div class="timeline-time">02:38:00 UTC</div><div class="timeline-desc">Contained prior to exfiltration; staged 7z purged; backup migrated to gMSA.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: Playbooks -->
+    <div id="tab-playbooks" class="tab-pane">
+      <div class="card">
+        <h3>Standardized Incident Response Playbooks</h3>
+        <p style="color:var(--text-muted); margin-bottom: 16px;">Standard operating procedures designed for rapid execution under SLA pressure.</p>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          <div style="background:#0b0e14; padding:16px; border-radius:6px; border:1px solid var(--border);">
+            <h4 style="color:var(--accent); margin-bottom:8px;">CDL-IRP-01: Compromised Credentials</h4>
+            <p style="font-size:0.85rem; color:var(--text);"><strong>Techniques:</strong> T1078, T1110, T1098</p>
+            <p style="font-size:0.85rem; margin-top:8px;"><strong>Actions:</strong> Automated AD account disablement, Azure AD refresh token revocation, active Kerberos TGT purge, double krbtgt reset protocol.</p>
+          </div>
+          <div style="background:#0b0e14; padding:16px; border-radius:6px; border:1px solid var(--border);">
+            <h4 style="color:var(--accent); margin-bottom:8px;">CDL-IRP-02: Lateral Movement</h4>
+            <p style="font-size:0.85rem; color:var(--text);"><strong>Techniques:</strong> T1021.002, T1047, T1569.002</p>
+            <p style="font-size:0.85rem; margin-top:8px;"><strong>Actions:</strong> Dual-endpoint isolation (source + destination), emergency TCP 445/135 micro-segmentation, PSEXESVC termination, memory acquisition.</p>
+          </div>
+          <div style="background:#0b0e14; padding:16px; border-radius:6px; border:1px solid var(--border);">
+            <h4 style="color:var(--accent); margin-bottom:8px;">CDL-IRP-03: C2 Beaconing</h4>
+            <p style="font-size:0.85rem; color:var(--text);"><strong>Techniques:</strong> T1071.001, T1071.004, T1572</p>
+            <p style="font-size:0.85rem; margin-top:8px;"><strong>Actions:</strong> Perimeter firewall null-routing, DNS sinkholing, beacon process memory dump capture, TCP keepalive socket teardown.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

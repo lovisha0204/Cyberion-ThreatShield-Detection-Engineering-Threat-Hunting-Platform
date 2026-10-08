@@ -1,0 +1,117 @@
+// ==============================================================================
+// CYBERION DEFENSE LABS - ELASTICSEARCH / OPENSEARCH ESQL CATALOG (18 RULES)
+// Project Reference: CDL-DET-V2
+// ==============================================================================
+
+// [CDL-RULE-001] Suspicious PowerShell Download Cradle (T1059.001)
+FROM logs-endpoint.events.process-*
+| WHERE process.name IN ("powershell.exe", "pwsh.exe")
+  AND (process.command_line LIKE "*Net.WebClient*" OR process.command_line LIKE "*DownloadString*" OR process.command_line LIKE "*Invoke-WebRequest*")
+  AND (process.command_line LIKE "*IEX*" OR process.command_line LIKE "*Invoke-Expression*")
+  AND NOT (process.command_line LIKE "*C:\\Program Files\\NinjaRMM\\*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-002] LSASS Memory Access for Credential Dumping (T1003.001)
+FROM logs-endpoint.events.api-*
+| WHERE winlog.event_data.TargetImage LIKE "*\\lsass.exe"
+  AND (winlog.event_data.GrantedAccess LIKE "*0x1010*" OR winlog.event_data.GrantedAccess LIKE "*0x1FFFFF*")
+  AND NOT (winlog.event_data.SourceImage IN ("*\\MsSense.exe", "*\\svchost.exe", "*\\csrss.exe"))
+| KEEP @timestamp, host.name, winlog.event_data.SourceImage, winlog.event_data.GrantedAccess
+
+// [CDL-RULE-003] PsExec Service Installation (T1569.002, T1021.002)
+FROM logs-endpoint.events.process-*
+| WHERE (process.name IN ("PSEXESVC.exe", "psexec.exe"))
+  OR (process.parent.name == "services.exe" AND process.command_line LIKE "*PSEXESVC*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-004] WMI Remote Process Creation (T1047)
+FROM logs-endpoint.events.process-*
+| WHERE (process.parent.name == "wmiprvse.exe" AND process.name IN ("cmd.exe", "powershell.exe", "rundll32.exe", "mshta.exe"))
+  OR (process.name == "wmic.exe" AND process.command_line LIKE "*process call create*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-005] Suspicious C2 Beaconing via HTTP (T1071.001)
+FROM logs-network.zeek.http-*
+| WHERE url.path LIKE "*/api/v1/heartbeat*" OR (user_agent.original LIKE "*Cobalt*" AND destination.port == 8443)
+| KEEP @timestamp, source.ip, destination.ip, destination.port, url.path, user_agent.original
+
+// [CDL-RULE-006] Active Directory Database Extraction via Shadow Copy (T1003.003)
+FROM logs-endpoint.events.process-*
+| WHERE (process.name == "vssadmin.exe" AND process.command_line LIKE "*create shadow*")
+  OR (process.name == "ntdsutil.exe" AND process.command_line LIKE "*ntds*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-007] Account Added to Privileged Security Group (T1098)
+FROM logs-windows.security-*
+| WHERE event.code IN ("4728", "4732", "4756")
+  AND winlog.event_data.TargetUserName IN ("Domain Admins", "Enterprise Admins", "Administrators")
+| KEEP @timestamp, host.name, winlog.event_data.SubjectUserName, winlog.event_data.TargetUserName
+
+// [CDL-RULE-008] Suspicious Rundll32 Execution (T1218.011)
+FROM logs-endpoint.events.process-*
+| WHERE process.name == "rundll32.exe"
+  AND (process.command_line LIKE "*\\AppData\\Local\\Temp\\*" OR process.command_line LIKE "*C:\\Users\\Public\\*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-009] Scheduled Task Creation via Schtasks (T1053.005)
+FROM logs-endpoint.events.process-*
+| WHERE process.name == "schtasks.exe" AND process.command_line LIKE "*/create*"
+  AND (process.command_line LIKE "*powershell*" OR process.command_line LIKE "*/ru system*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-010] Registry Run Key Persistence (T1547.001)
+FROM logs-endpoint.events.registry-*
+| WHERE registry.path LIKE "*\\Microsoft\\Windows\\CurrentVersion\\Run\\*"
+  AND registry.data.strings LIKE "*.exe*"
+| KEEP @timestamp, host.name, registry.path, registry.data.strings
+
+// [CDL-RULE-011] DNS TXT Tunneling (T1071.004)
+FROM logs-network.zeek.dns-*
+| WHERE dns.question.type == "TXT" AND dns.question.name LIKE "*.tunnel.*"
+| KEEP @timestamp, source.ip, dns.question.name
+
+// [CDL-RULE-012] Certutil LOLBAS Transfer (T1105)
+FROM logs-endpoint.events.process-*
+| WHERE process.name == "certutil.exe" AND process.command_line LIKE "*-urlcache*"
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-013] Defense Evasion via Mshta (T1218.005)
+FROM logs-endpoint.events.process-*
+| WHERE process.name == "mshta.exe" AND (process.command_line LIKE "*vbscript:*" OR process.command_line LIKE "*http://*")
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-014] Remote Desktop Netsh Portproxy (T1021.001)
+FROM logs-endpoint.events.process-*
+| WHERE process.name == "netsh.exe" AND process.command_line LIKE "*connectport=3389*"
+| KEEP @timestamp, host.name, user.name, process.command_line
+
+// [CDL-RULE-015] Kerberoasting TGS Request (T1558.003)
+FROM logs-windows.security-*
+| WHERE event.code == "4769" AND winlog.event_data.TicketEncryptionType == "0x17"
+  AND NOT (winlog.event_data.ServiceName LIKE "*$")
+| KEEP @timestamp, host.name, winlog.event_data.TargetUserName, winlog.event_data.ServiceName
+
+// [CDL-RULE-016] Correlation - Brute Force to Successful Logon (T1110 -> T1078)
+FROM logs-windows.security-*
+| WHERE event.code IN ("4625", "4624")
+| STATS 
+    fail_count = COUNT_IF(event.code == "4625"),
+    succ_count = COUNT_IF(event.code == "4624")
+  BY source.ip, winlog.event_data.TargetUserName, BUCKET(@timestamp, 5m)
+| WHERE fail_count >= 5 AND succ_count >= 1
+
+// [CDL-RULE-017] Correlation - Domain Recon to Lateral Movement (T1087 -> T1021)
+FROM logs-endpoint.events.process-*
+| STATS 
+    recon_ops = COUNT_IF(process.command_line LIKE "*Domain Admins*" OR process.command_line LIKE "*/domain*"),
+    lateral_ops = COUNT_IF(process.command_line LIKE "*process call create*" OR process.name == "PSEXESVC.exe")
+  BY host.name, user.name, BUCKET(@timestamp, 10m)
+| WHERE recon_ops >= 1 AND lateral_ops >= 1
+
+// [CDL-RULE-018] Correlation - LSASS Dump to Outbound Egress (T1003.001 -> T1071.001)
+FROM logs-endpoint.events.*
+| STATS
+    dump_ops = COUNT_IF(event.action == "OpenProcess" AND winlog.event_data.TargetImage LIKE "*\\lsass.exe"),
+    egress_ops = COUNT_IF(event.category == "network" AND destination.port IN (80, 443, 8443))
+  BY host.name, BUCKET(@timestamp, 3m)
+| WHERE dump_ops >= 1 AND egress_ops >= 1

@@ -1,0 +1,16 @@
+{
+  "audit_timestamp": "2026-10-08T13:35:17.330266+00:00",
+  "project_code": "CDL-DET-V2",
+  "deliverables_total": 32,
+  "deliverables_present": 32,
+  "rules_total": 18,
+  "rules_passed": 18,
+  "techniques_evaluated": 26,
+  "threat_hunts": 2,
+  "incidents_investigated": 2,
+  "playbooks_authored": 3,
+  "tuning_passes": 3,
+  "harness_status": "PASS",
+  "unit_test_status": "PASS",
+  "overall_status": "COMPLIANT_AND_VERIFIED"
+}

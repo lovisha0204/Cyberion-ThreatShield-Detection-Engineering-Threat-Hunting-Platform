@@ -1,0 +1,122 @@
+// ==============================================================================
+// CYBERION DEFENSE LABS - FULL SPLUNK SPL CONVERSION CATALOG (18 RULES)
+// Project Reference: CDL-DET-V2
+// ==============================================================================
+
+// [CDL-RULE-001] Suspicious PowerShell Download Cradle (T1059.001)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+(Image="*\\powershell.exe" OR Image="*\\pwsh.exe")
+(CommandLine="*Net.WebClient*" OR CommandLine="*DownloadString*" OR CommandLine="*DownloadFile*" OR CommandLine="*Invoke-WebRequest*" OR CommandLine="*iwr *" OR CommandLine="*irm *" OR CommandLine="*curl.exe*")
+(CommandLine="*IEX*" OR CommandLine="*Invoke-Expression*" OR CommandLine="*[ScriptBlock]::Create*")
+NOT (CommandLine="*C:\\Program Files\\NinjaRMM\\*" OR CommandLine="*C:\\Program Files (x86)\\Kaseya\\*")
+| table _time, host, user, Image, CommandLine, ParentImage
+
+// [CDL-RULE-002] LSASS Memory Access for Credential Dumping (T1003.001)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=10
+TargetImage="*\\lsass.exe"
+(GrantedAccess="*0x1010*" OR GrantedAccess="*0x1FFFFF*" OR GrantedAccess="*0x1410*" OR GrantedAccess="*0x1438*")
+NOT (SourceImage="*\\MsSense.exe" OR SourceImage="*\\svchost.exe" OR SourceImage="*\\csrss.exe" OR SourceImage="*\\wmiprvse.exe")
+| table _time, host, SourceImage, TargetImage, GrantedAccess, CallTrace
+
+// [CDL-RULE-003] PsExec Service Installation for Remote Execution (T1569.002, T1021.002)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+(Image="*\\PSEXESVC.exe" OR Image="*\\psexec.exe") OR (ParentImage="*\\services.exe" AND (CommandLine="*PSEXESVC*" OR CommandLine="*-accepteula*"))
+| table _time, host, user, Image, CommandLine, ParentImage
+
+// [CDL-RULE-004] WMI Remote Process Creation (T1047)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+((ParentImage="*\\wmiprvse.exe" AND (Image="*\\cmd.exe" OR Image="*\\powershell.exe" OR Image="*\\pwsh.exe" OR Image="*\\rundll32.exe" OR Image="*\\mshta.exe" OR Image="*\\cscript.exe" OR Image="*\\wscript.exe" OR Image="*\\certutil.exe"))
+OR (Image="*\\wmic.exe" AND (CommandLine="*process call create*" OR CommandLine="*process create*")))
+| table _time, host, user, Image, CommandLine, ParentImage
+
+// [CDL-RULE-005] Suspicious C2 Beaconing via HTTP (T1071.001)
+index=zeek sourcetype="zeek:http"
+(uri="*/api/v1/heartbeat*" OR uri="*/match/submit.php*" OR uri="*/news/update.php*" OR uri="*/push.php*" OR uri="*/beacon.txt*")
+OR ((user_agent="*Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)*" OR user_agent="*Cobalt*" OR user_agent="*Sliver*" OR user_agent="*curl/*" OR user_agent="*Python-urllib*")
+AND (id_resp_p=8080 OR id_resp_p=8443 OR id_resp_p=8888 OR id_resp_p=7001))
+| table _time, id_orig_h, id_resp_h, id_resp_p, uri, user_agent, status_code
+
+// [CDL-RULE-006] Active Directory Database Extraction via Volume Shadow Copy (T1003.003)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+((Image="*\\vssadmin.exe" AND (CommandLine="*create shadow*" OR CommandLine="*delete shadows*"))
+OR (Image="*\\ntdsutil.exe" AND (CommandLine="*ntds*" OR CommandLine="*ifm*" OR CommandLine="*ac i ntds*"))
+OR (Image="*\\esentutl.exe" AND CommandLine="*ntds.dit*"))
+| table _time, host, user, Image, CommandLine, ParentImage
+
+// [CDL-RULE-007] Account Added to Privileged Domain Security Group (T1098, T1078.002)
+index=windows sourcetype="XmlWinEventLog:Security" (EventCode=4728 OR EventCode=4732 OR EventCode=4756)
+(TargetUserName="*Domain Admins*" OR TargetUserName="*Enterprise Admins*" OR TargetUserName="*Schema Admins*" OR TargetUserName="*Administrators*")
+| table _time, host, SubjectUserName, TargetUserName, MemberName
+
+// [CDL-RULE-008] Suspicious Rundll32 Execution from User Directory (T1218.011)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image="*\\rundll32.exe"
+(CommandLine="*\\AppData\\Local\\Temp\\*" OR CommandLine="*\\AppData\\Roaming\\*" OR CommandLine="*C:\\Users\\Public\\*" OR CommandLine="*,#1*" OR CommandLine="*,#2*")
+| table _time, host, user, Image, CommandLine
+
+// [CDL-RULE-009] Suspicious Scheduled Task Creation via Schtasks (T1053.005)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image="*\\schtasks.exe" (CommandLine="*/create*" OR CommandLine="*-create*")
+(CommandLine="*powershell*" OR CommandLine="*cmd.exe*" OR CommandLine="*wscript*" OR CommandLine="*/ru system*" OR CommandLine="*/ru NT AUTHORITY\\SYSTEM*")
+| table _time, host, user, Image, CommandLine
+
+// [CDL-RULE-010] Persistence via Registry Run Key Modification (T1547.001)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=13
+(TargetObject="*\\Microsoft\\Windows\\CurrentVersion\\Run\\*" OR TargetObject="*\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\*")
+(Details="*.exe*" OR Details="*.ps1*" OR Details="*.bat*" OR Details="*powershell*")
+NOT (Details="*C:\\Program Files\\Google\\Chrome\\*" OR Details="*C:\\Program Files\\Windows Defender\\*")
+| table _time, host, Image, TargetObject, Details
+
+// [CDL-RULE-011] Potential DNS Tunneling or Exfiltration via TXT Queries (T1071.004)
+index=zeek sourcetype="zeek:dns" qtype_name="TXT"
+(query="*.tunnel.*" OR query="*.c2.*" OR query="*.dnsc2.*" OR query="*.stage01.*")
+NOT (query="*_domainkey.*" OR query="*_spf.*")
+| table _time, id_orig_h, id_resp_h, query, answers
+
+// [CDL-RULE-012] Ingress Tool Transfer via Certutil Living-Off-The-Land Binary (T1105)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image="*\\certutil.exe"
+(CommandLine="*-urlcache*" OR CommandLine="*/urlcache*")
+(CommandLine="*-split*" OR CommandLine="*/split*")
+(CommandLine="*http://*" OR CommandLine="*https://*")
+| table _time, host, user, Image, CommandLine
+
+// [CDL-RULE-013] Defense Evasion via Suspicious Mshta Execution (T1218.005)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image="*\\mshta.exe"
+(CommandLine="*vbscript:*" OR CommandLine="*javascript:*" OR CommandLine="*http://*" OR CommandLine="*https://*")
+| table _time, host, user, Image, CommandLine
+
+// [CDL-RULE-014] Remote Desktop Port Tunneling via Netsh Portproxy (T1021.001)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+Image="*\\netsh.exe" CommandLine="*portproxy*" CommandLine="*connectport=3389*"
+| table _time, host, user, CommandLine
+
+// [CDL-RULE-015] Kerberoasting Ticket Request with RC4 Encryption (T1558.003)
+index=windows sourcetype="XmlWinEventLog:Security" EventCode=4769
+TicketEncryptionType="0x17"
+NOT (ServiceName="*$*" OR ServiceName="krbtgt")
+| table _time, host, TargetUserName, ServiceName, TicketEncryptionType, IpAddress
+
+// [CDL-RULE-016] Correlation - Brute Force Followed by Successful Logon (T1110 -> T1078)
+index=windows sourcetype="XmlWinEventLog:Security" (EventCode=4625 OR EventCode=4624)
+| eval Status=if(EventCode=4625, "Failure", "Success")
+| bin _time span=5m
+| stats count(eval(Status="Failure")) as Failures, count(eval(Status="Success")) as Successes, values(TargetUserName) as Users by _time, IpAddress
+| where Failures >= 5 AND Successes >= 1
+
+// [CDL-RULE-017] Correlation - Domain Reconnaissance Followed by Remote Execution (T1087 -> T1021)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1
+| eval IsRecon=if(like(CommandLine, "%Domain Admins%") OR like(CommandLine, "%/domain%"), 1, 0)
+| eval IsLateral=if(like(CommandLine, "%process call create%") OR like(Image, "%PSEXESVC%"), 1, 0)
+| bin _time span=10m
+| stats sum(IsRecon) as ReconCount, sum(IsLateral) as LateralCount by _time, host, user
+| where ReconCount >= 1 AND LateralCount >= 1
+
+// [CDL-RULE-018] Correlation - LSASS Dump Followed by Outbound Egress (T1003.001 -> T1071.001)
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" (EventCode=10 OR EventCode=3)
+| eval IsDump=if(EventCode=10 AND like(TargetImage, "%lsass.exe") AND (like(GrantedAccess, "%0x1010%") OR like(GrantedAccess, "%0x1FFFFF%")), 1, 0)
+| eval IsEgress=if(EventCode=3 AND (DestinationPort=80 OR DestinationPort=443 OR DestinationPort=8443), 1, 0)
+| bin _time span=3m
+| stats sum(IsDump) as DumpCount, sum(IsEgress) as EgressCount by _time, host
+| where DumpCount >= 1 AND EgressCount >= 1
