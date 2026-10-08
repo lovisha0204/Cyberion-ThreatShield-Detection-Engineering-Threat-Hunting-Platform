@@ -56,6 +56,7 @@ c:\Users\Hp\Desktop\cyber\
 │
 ├── coverage/                                # MITRE ATT&CK Framework Mapping
 │   ├── mitre_coverage_matrix.md             # 26 Techniques assessed across 9 tactics with gap analysis
+│   ├── mitre_coverage_matrix.csv            # Spreadsheet export of coverage matrix for audits/Excel
 │   └── cyberion_attck_navigator_layer.json  # Official MITRE ATT&CK Navigator v4.5 JSON layer
 │
 ├── threat_hunts/                            # Hypothesis-Driven Threat Hunting Reports
@@ -95,6 +96,9 @@ c:\Users\Hp\Desktop\cyber\
 │   ├── atomic_red_team_guide.md             # Complete Atomic Red Team test execution guide
 │   └── simulate_telemetry.py                # Python adversary telemetry generator
 │
+├── notebooks/                               # Log Analytics & Threat Hunting Notebooks
+│   └── telemetry_analysis.ipynb             # Interactive Jupyter Notebook for telemetry & hunt analysis
+│
 ├── dashboard/                               # Security Operations Portal
 │   └── index.html                           # Standalone interactive dashboard with live matrix & timelines
 │
@@ -104,13 +108,16 @@ c:\Users\Hp\Desktop\cyber\
 │
 ├── tools/                                   # Automation & Verification Tooling
 │   ├── harness.py                           # Python Sigma rule test harness & evaluation engine
-│   └── sigma_converter.py                   # Automated CLI translator from Sigma YAML to SPL / KQL
+│   ├── sigma_converter.py                   # Automated CLI translator from Sigma YAML to SPL / KQL
+│   └── log_analyzer.py                      # Statistical delta-T jitter & LOLBAS burst analyzer
 │
 ├── tests/
 │   └── test_rule_integrity.py              # Automated unit test suite verifying schema, tags, and hits
 │
-├── verify_all.py                            # Master audit runner validating all 32 deliverables & tests
-└── audit_report.json                        # Timestamped JSON audit compliance certificate
+├── verify_all.py                            # Master audit runner validating all 34 deliverables & tests
+├── audit_report.json                        # Timestamped JSON audit compliance certificate
+├── run_verification.bat                     # Windows Command Prompt one-click verification launcher
+└── run_verification.ps1                     # Windows PowerShell one-click verification launcher
 ```
 
 ---
