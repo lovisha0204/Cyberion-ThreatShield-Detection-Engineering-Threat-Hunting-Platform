@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberion Defense Labs — Detection Engineering Briefing</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --success: #238636;
+      --warning: #d29922;
+      --danger: #da3633;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { font-size: 1.15rem; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
+    .status-badge { background: #1f6feb26; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; border: 1px solid #388bfd4d; }
+    
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; }
+    .slide-container { width: 100%; max-width: 1050px; height: 580px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 40px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); display: none; flex-direction: column; justify-content: space-between; position: relative; }
+    .slide-container.active { display: flex; }
+    
+    .slide-header { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 20px; }
+    .slide-header h2 { color: var(--heading); font-size: 1.7rem; font-weight: 600; }
+    .slide-header p { color: #8b949e; font-size: 0.9rem; margin-top: 4px; }
+    
+    .slide-content { flex: 1; overflow-y: auto; line-height: 1.6; }
+    
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+    .kpi-card { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 18px; text-align: center; }
+    .kpi-val { font-size: 2rem; font-weight: 700; color: var(--accent); }
+    .kpi-lbl { font-size: 0.85rem; color: #8b949e; margin-top: 6px; }
+    
+    .feature-list { list-style: none; margin-top: 12px; }
+    .feature-list li { margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; font-size: 1.05rem; }
+    .feature-list li::before { content: "✔"; color: #3fb950; font-weight: bold; }
+    
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 18px; }
+    .panel h3 { color: var(--heading); font-size: 1.15rem; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    
+    footer {
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-group { display: flex; gap: 12px; }
+    button {
+      background: #21262d;
+      color: var(--heading);
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    button:hover { background: #30363d; border-color: #8b949e; }
+    .progress-bar-container { width: 300px; height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 10%; background: var(--accent); transition: width 0.3s; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">CYBERION DEFENSE LABS — DETECTION ENGINEERING (CDL-DET-V2)</div>
+    <div class="status-badge">4-Week Sprint Deliverable Deck</div>
+  </header>
+
+  <main>
+    <!-- Slide 1 -->
+    <div class="slide-container active" id="slide-1">
+      <div>
+        <div class="slide-header">
+          <h2>Detection Engineering & Threat Hunting Briefing</h2>
+          <p>Transforming Reactive SOC Operations into an Evidence-Based Defense Engine</p>
+        </div>
+        <div class="slide-content">
+          <p style="font-size: 1.15rem; margin-bottom: 20px;">
+            A comprehensive analytical and content-engineering initiative conducted to establish an audit-defensible detection library mapped to MITRE ATT&CK, repeatable threat hunting models, and standardized incident response workflows.
+          </p>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-val">18</div><div class="kpi-lbl">Sigma Rules Authored</div></div>
+            <div class="kpi-card"><div class="kpi-val">26</div><div class="kpi-lbl">ATT&CK Techniques Evaluated</div></div>
+            <div class="kpi-card"><div class="kpi-val">2</div><div class="kpi-lbl">Threat Hunts Executed</div></div>
+            <div class="kpi-card"><div class="kpi-val">99.6%</div><div class="kpi-lbl">Noise Reduction Achieved</div></div>
+          </div>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 1 of 8 — Press Next or use arrow keys</p>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide-container" id="slide-2">
+      <div>
+        <div class="slide-header">
+          <h2>The Business Problem & Strategic Objectives</h2>
+          <p>Moving from Informal Tribal Knowledge to Repeatable Engineering</p>
+        </div>
+        <div class="slide-content">
+          <div class="grid-2col">
+            <div class="panel">
+              <h3 style="color: #f85149;">Pre-Engagement Challenges</h3>
+              <ul class="feature-list" style="font-size: 0.95rem;">
+                <li style="color: #f85149;">No MITRE ATT&CK view of SOC detection coverage.</li>
+                <li style="color: #f85149;">Detection logic undocumented and unverified against real attack telemetry.</li>
+                <li style="color: #f85149;">Threat hunting executed rarely without written hypotheses or negative baselines.</li>
+                <li style="color: #f85149;">Severe alert fatigue from un-tuned administrative scripts.</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <h3 style="color: #3fb950;">Post-Sprint Delivered State</h3>
+              <ul class="feature-list" style="font-size: 0.95rem;">
+                <li>Version-controlled Sigma rule repository tested on real datasets.</li>
+                <li>Quantitative MITRE ATT&CK Navigator layer with 96.1% coverage rate.</li>
+                <li>Repeatable hypothesis-driven threat hunting methodology.</li>
+                <li>Documented false positive tuning eliminating 770+ daily false alerts.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 2 of 8</p>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide-container" id="slide-3">
+      <div>
+        <div class="slide-header">
+          <h2>Telemetry Harmonization & Public Datasets</h2>
+          <p>Multi-Sensor Grounding via Windows Security, Sysmon, and Zeek</p>
+        </div>
+        <div class="slide-content">
+          <p style="margin-bottom: 16px;">All rules and investigations were executed against verifiable, authentic attack datasets:</p>
+          <div class="grid-2col">
+            <div class="panel">
+              <h3>Sensor Types Documented</h3>
+              <p><strong>Windows Security Logs:</strong> Kerberos TGS (4769), Auth (4624/4625), Group Changes (4728).</p>
+              <p style="margin-top: 8px;"><strong>Microsoft Sysmon:</strong> Process lineage (EID 1), LSASS access (EID 10), Sockets (EID 3), Registry (EID 13).</p>
+              <p style="margin-top: 8px;"><strong>Zeek Wire Telemetry:</strong> Connection stats (conn.log), DNS queries (dns.log), HTTP headers (http.log).</p>
+            </div>
+            <div class="panel">
+              <h3>Datasets Utilized</h3>
+              <p><strong>Mordor Project (OTRF):</strong> Adversary emulation datasets for Cobalt Strike and Empire.</p>
+              <p style="margin-top: 8px;"><strong>EVTX-ATTACK-SAMPLES:</strong> Technique-specific EVTX captures for PsExec, VSS, and Kerberoasting.</p>
+              <p style="margin-top: 8px;"><strong>Splunk BOTS v1/v2:</strong> Enterprise multi-tier attack streams and C2 beacon logs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 3 of 8</p>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide-container" id="slide-4">
+      <div>
+        <div class="slide-header">
+          <h2>Sigma Rule Library & SIEM Portability</h2>
+          <p>18 Production Rules Delivered with Cross-Backend Conversions</p>
+        </div>
+        <div class="slide-content">
+          <ul class="feature-list">
+            <li><strong>15 Single-Source Rules:</strong> Targeting PowerShell download cradles, LSASS dumping, PsExec, WMI, C2 HTTP beacons, NTDS.dit shadow copies, Rundll32, Schtasks, and DNS tunneling.</li>
+            <li><strong>3 Advanced Correlation Rules:</strong> Temporal Brute Force to Success (5m window), Recon to Lateral Movement hop (10m window), and LSASS Dump to Outbound Network Egress (3m window).</li>
+            <li><strong>Cross-Backend Portability:</strong> Complete conversions provided for <strong>Splunk SPL</strong> and <strong>Microsoft Sentinel KQL</strong>.</li>
+          </ul>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 4 of 8</p>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide-container" id="slide-5">
+      <div>
+        <div class="slide-header">
+          <h2>MITRE ATT&CK Coverage & Gap Assessment</h2>
+          <p>26 Enterprise Techniques Assessed across 9 Tactics</p>
+        </div>
+        <div class="slide-content">
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-val" style="color:#3fb950;">20</div><div class="kpi-lbl">Covered (76.9%)</div></div>
+            <div class="kpi-card"><div class="kpi-val" style="color:#d29922;">5</div><div class="kpi-lbl">Partially Covered (19.2%)</div></div>
+            <div class="kpi-card"><div class="kpi-val" style="color:#f85149;">1</div><div class="kpi-lbl">Gaps Identified (3.9%)</div></div>
+            <div class="kpi-card"><div class="kpi-val" style="color:#58a6ff;">9</div><div class="kpi-lbl">Tactics Spanned</div></div>
+          </div>
+          <p style="margin-top: 10px;">Official <strong>MITRE ATT&CK Navigator Layer JSON</strong> exported and validated. The single identified gap (T1562.001 - Antivirus/Tool Tampering) has been prioritized for the next sprint backlog.</p>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 5 of 8</p>
+    </div>
+
+    <!-- Slide 6 -->
+    <div class="slide-container" id="slide-6">
+      <div>
+        <div class="slide-header">
+          <h2>Threat Hunting Outcomes & Incident Case Studies</h2>
+          <p>From Hypothesis Formulation to Full Lifecycle Incident Containment</p>
+        </div>
+        <div class="slide-content">
+          <div class="grid-2col">
+            <div class="panel">
+              <h3 style="color:#58a6ff;">Incident INC-2026-0841 (P1 - Critical)</h3>
+              <p><strong>Vector:</strong> Spearphishing macro executing PowerShell download cradle.</p>
+              <p><strong>Escalation:</strong> Dumped LSASS credentials on WKSTN-FIN-01, moved laterally to DC-01 via PsExec.</p>
+              <p><strong>Outcome:</strong> Contained in 25 min; double krbtgt reset prevented ransomware deployment.</p>
+            </div>
+            <div class="panel">
+              <h3 style="color:#58a6ff;">Incident INC-2026-0894 (P2 - High)</h3>
+              <p><strong>Vector:</strong> Compromised backup service account (svc_backup) via WinRM.</p>
+              <p><strong>Escalation:</strong> Cloned Active Directory database (ntds.dit) via VSS; staged into 7z archive.</p>
+              <p><strong>Outcome:</strong> Intercepted prior to DNS exfiltration; migrated backup service to gMSA.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 6 of 8</p>
+    </div>
+
+    <!-- Slide 7 -->
+    <div class="slide-container" id="slide-7">
+      <div>
+        <div class="slide-header">
+          <h2>False Positive Tuning & Operational Playbooks</h2>
+          <p>Eliminating Analyst Alert Fatigue and Standardizing Triage</p>
+        </div>
+        <div class="slide-content">
+          <div class="grid-2col">
+            <div class="panel">
+              <h3>Tuning Pass Results</h3>
+              <p><strong>PowerShell Cradles:</strong> Filtered NinjaRMM / Kaseya (184 FP eliminated).</p>
+              <p style="margin-top: 6px;"><strong>LSASS Access:</strong> Filtered Defender ATP MsSense.exe (512 FP eliminated).</p>
+              <p style="margin-top: 6px;"><strong>Scheduled Tasks:</strong> Narrowed to elevated context and scripts (78 FP eliminated).</p>
+              <p style="margin-top: 6px; color:#3fb950; font-weight: bold;">Total Daily Alerts Eliminated: 774 (99.6% Reduction)</p>
+            </div>
+            <div class="panel">
+              <h3>Standardized Response Playbooks</h3>
+              <p><strong>CDL-IRP-01:</strong> Compromised Credential Use (T1078, T1110).</p>
+              <p style="margin-top: 6px;"><strong>CDL-IRP-02:</strong> Lateral Movement via Remote Services (T1021.002, T1047, T1569.002).</p>
+              <p style="margin-top: 6px;"><strong>CDL-IRP-03:</strong> Command & Control Beaconing (T1071.001, T1071.004).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 7 of 8</p>
+    </div>
+
+    <!-- Slide 8 -->
+    <div class="slide-container" id="slide-8">
+      <div>
+        <div class="slide-header">
+          <h2>90-Day Strategic Roadmap</h2>
+          <p>Continuous Validation, Identity Hardening, and CI/CD Automation</p>
+        </div>
+        <div class="slide-content">
+          <ul class="feature-list">
+            <li><strong>Month 1 (Identity & Boundary Hardening):</strong> Deploy Windows Defender Credential Guard enterprise-wide; enforce AD tiering restrictions preventing Domain Admins on user workstations.</li>
+            <li><strong>Month 2 (SIEM Production Rollout):</strong> Ingest converted Splunk SPL and Microsoft Sentinel KQL queries into production client pipelines; automate IOC watchlist sync.</li>
+            <li><strong>Month 3 (Purple Teaming & CI/CD):</strong> Integrate Python test harness into GitHub Actions for automated rule regression testing; conduct quarterly Atomic Red Team purple-team exercises.</li>
+          </ul>
+        </div>
+      </div>
+      <p style="color: #8b949e; font-size: 0.85rem;">Slide 8 of 8 — End of Briefing</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+    <div class="btn-group">
+      <button id="prevBtn" onclick="prevSlide()">Previous</button>
+      <button id="nextBtn" onclick="nextSlide()">Next</button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+
+    function showSlide(index) {
+      for (let i = 1; i <= totalSlides; i++) {
+        const el = document.getElementById(`slide-${i}`);
+        if (el) el.classList.remove('active');
+      }
+      const activeEl = document.getElementById(`slide-${index}`);
+      if (activeEl) activeEl.classList.add('active');
+      
+      const progress = document.getElementById('progress');
+      progress.style.width = `${(index / totalSlides) * 100}%`;
+      
+      document.getElementById('prevBtn').disabled = (index === 1);
+      document.getElementById('nextBtn').innerText = (index === totalSlides) ? 'Restart' : 'Next';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+      } else {
+        currentSlide = 1;
+      }
+      showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        showSlide(currentSlide);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+
+    showSlide(currentSlide);
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+domain,threat_type,confidence,campaign,first_seen,notes
+tunnel.data-exfil-c2.net,DNS_Tunneling,High,BOTS_Simulation,2026-10-07T02:35:00Z,High-frequency TXT tunneling base domain
+secure-update-portal.org,Spearphish_C2,High,FIN7_Simulation,2026-10-08T08:22:00Z,Phishing payload staging domain
+cdn-update-service.com,C2_Domain_Front,Medium,Cobalt_Strike,2026-10-08T08:24:00Z,Spoofed cloud fronting domain
+login-microsoft-portal.cc,Credential_Phish,High,Password_Spray,2026-10-08T07:50:00Z,Lookalike domain for credential harvesting

@@ -1,0 +1,75 @@
+// ==============================================================================
+// CYBERION DEFENSE LABS - BACKEND PORTABILITY: MICROSOFT SENTINEL KQL CONVERSIONS
+// Reference: Sigma Rule Library (CDL-DET-V2)
+// Generated for: Microsoft Sentinel / Microsoft Defender XDR
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-001: Suspicious PowerShell Download Cradle (T1059.001)
+// ------------------------------------------------------------------------------
+DeviceProcessEvents
+| where ProcessCommandLine has_any ("powershell.exe", "pwsh.exe") or FileName in~ ("powershell.exe", "pwsh.exe")
+| where ProcessCommandLine has_any ("Net.WebClient", "DownloadString", "DownloadFile", "Invoke-WebRequest", "iwr ", "irm ", "curl.exe")
+| where ProcessCommandLine has_any ("IEX", "Invoke-Expression", "[ScriptBlock]::Create")
+| where not(ProcessCommandLine has_any (@"C:\Program Files\NinjaRMM\", @"C:\Program Files (x86)\Kaseya\"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-002: LSASS Memory Access for Credential Dumping (T1003.001)
+// ------------------------------------------------------------------------------
+DeviceEvents
+| where ActionType == "OpenProcessApiCall"
+| where FileName =~ "lsass.exe"
+| where AdditionalFields has_any ("0x1010", "0x1FFFFF", "0x1410", "0x1438")
+| where not(InitiatingProcessFileName in~ ("MsSense.exe", "svchost.exe", "csrss.exe", "wmiprvse.exe"))
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, FileName, AdditionalFields
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-003: PsExec Service Installation for Remote Execution (T1569.002, T1021.002)
+// ------------------------------------------------------------------------------
+DeviceProcessEvents
+| where FileName in~ ("PSEXESVC.exe", "psexec.exe")
+    or (InitiatingProcessFileName =~ "services.exe" and ProcessCommandLine has_any ("PSEXESVC", "-accepteula"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-004: WMI Remote Process Creation (T1047)
+// ------------------------------------------------------------------------------
+DeviceProcessEvents
+| where (InitiatingProcessFileName =~ "wmiprvse.exe" and FileName in~ ("cmd.exe", "powershell.exe", "pwsh.exe", "rundll32.exe", "mshta.exe", "cscript.exe", "wscript.exe", "certutil.exe"))
+    or (FileName =~ "wmic.exe" and ProcessCommandLine has_any ("process call create", "process create"))
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-005: Suspicious C2 Beaconing via HTTP (T1071.001)
+// ------------------------------------------------------------------------------
+DeviceNetworkEvents
+| where ActionType == "HttpConnection"
+| where RemoteUrl has_any ("/api/v1/heartbeat", "/match/submit.php", "/news/update.php", "/push.php", "/beacon.txt")
+    or (AdditionalFields has_any ("Cobalt", "Sliver", "curl/", "Python-urllib") and RemotePort in (8080, 8443, 8888, 7001))
+| project TimeGenerated, DeviceName, LocalIP, RemoteIP, RemotePort, RemoteUrl, AdditionalFields
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-006: Active Directory Database Extraction via Volume Shadow Copy (T1003.003)
+// ------------------------------------------------------------------------------
+DeviceProcessEvents
+| where (FileName =~ "vssadmin.exe" and ProcessCommandLine has_any ("create shadow", "delete shadows"))
+    or (FileName =~ "ntdsutil.exe" and ProcessCommandLine has_any ("ntds", "ifm", "ac i ntds"))
+    or (FileName =~ "esentutl.exe" and ProcessCommandLine has "ntds.dit")
+| project TimeGenerated, DeviceName, AccountName, FileName, ProcessCommandLine
+
+// ------------------------------------------------------------------------------
+// CDL-RULE-016: Correlation - Multiple Failed Logons Followed by Success (T1110 -> T1078)
+// ------------------------------------------------------------------------------
+let TimeWindow = 5m;
+SecurityEvent
+| where EventID in (4625, 4624)
+| project TimeGenerated, EventID, IpAddress, TargetUserName, Computer
+| summarize 
+    FailedCount = countif(EventID == 4625),
+    SuccessCount = countif(EventID == 4624),
+    EarliestFailure = minif(TimeGenerated, EventID == 4625),
+    FirstSuccess = minif(TimeGenerated, EventID == 4624)
+    by IpAddress, TargetUserName, bin(TimeGenerated, TimeWindow)
+| where FailedCount >= 5 and SuccessCount >= 1 and FirstSuccess > EarliestFailure
+| project TimeGenerated, IpAddress, TargetUserName, FailedCount, SuccessCount

@@ -1,0 +1,5 @@
+ip_address,threat_type,confidence,campaign,first_seen,notes
+185.106.94.234,C2_Listener,High,Cobalt_Strike_Malleable,2026-10-08T08:23:00Z,Outbound port 8443 beaconing target
+91.214.124.88,Payload_Staging,High,APT29_Simulation,2026-10-07T02:15:00Z,Staged reverse shell stager host
+194.26.29.112,Proxy_Redirector,Medium,Empire_Emulation,2026-10-06T14:10:00Z,Fast-flux C2 redirector
+45.154.255.89,External_Scanner,High,Password_Spraying,2026-10-08T07:45:00Z,Source of brute-force authentication spray
